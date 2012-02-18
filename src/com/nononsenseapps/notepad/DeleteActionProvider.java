@@ -1,14 +1,15 @@
 package com.nononsenseapps.notepad;
 
+import com.actionbarsherlock.view.ActionProvider;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuItem.OnMenuItemClickListener;
+import com.actionbarsherlock.view.SubMenu;
 import com.nononsenseapps.notepad.interfaces.DeleteActionListener;
 
 import android.content.Context;
 import android.util.Log;
-import android.view.ActionProvider;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
-import android.view.SubMenu;
+
 import android.view.View;
 
 public class DeleteActionProvider extends ActionProvider implements

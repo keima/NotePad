@@ -5,25 +5,22 @@ import java.util.Calendar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.LoaderManager;
+
 import android.app.DatePickerDialog.OnDateSetListener;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
-import android.content.ClipData;
-import android.content.ClipboardManager;
+
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.CursorLoader;
+
 import android.content.Intent;
-import android.content.Loader;
+
 import android.database.Cursor;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.ClipboardManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateFormat;
@@ -31,9 +28,7 @@ import android.text.format.Time;
 import android.util.Log;
 import android.util.TimeFormatException;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -43,11 +38,29 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ScrollView;
-import android.widget.ShareActionProvider;
+
 import android.widget.Toast;
 
 import com.nononsenseapps.notepad.interfaces.DeleteActionListener;
 import com.nononsenseapps.ui.TextPreviewPreference;
+
+import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.OnNavigationListener;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.ActionProvider;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+import android.support.v4.app.Fragment;
 
 public class NotesEditorFragment extends Fragment implements TextWatcher,
 		OnDateSetListener, OnClickListener,
@@ -112,7 +125,7 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 	private Object shareActionProvider = null; // Must be object otherwise HC
 												// will crash
 
-	private Activity activity;
+	private FragmentActivity activity;
 
 	private EditText mTitle;
 
@@ -124,7 +137,7 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		this.activity = activity;
+		this.activity = (FragmentActivity) activity;
 	}
 
 	/**
@@ -378,9 +391,9 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 		ClipboardManager clipboard = (ClipboardManager) activity
 				.getSystemService(Context.CLIPBOARD_SERVICE);
 		// ICS style
-		clipboard.setPrimaryClip(ClipData.newPlainText("Note", text));
+		//clipboard.setPrimaryClip(ClipData.newPlainText("Note", text));
 		// Gingerbread style.
-		// clipboard.setText(text);
+		clipboard.setText(text);
 	}
 
 	@Override
@@ -580,12 +593,12 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 				MenuItem shareItem = menu
 						.findItem(R.id.editor_share_action_provider_action_bar);
 
-				ShareActionProvider shareProvider = (ShareActionProvider) shareItem
-						.getActionProvider();
-				shareProvider
-						.setShareHistoryFileName(ShareActionProvider.DEFAULT_SHARE_HISTORY_FILE_NAME);
+//				ShareActionProvider shareProvider = (ShareActionProvider) shareItem
+//						.getActionProvider();
+//				shareProvider
+//						.setShareHistoryFileName(ShareActionProvider.DEFAULT_SHARE_HISTORY_FILE_NAME);
 
-				this.shareActionProvider = shareProvider;
+//				this.shareActionProvider = shareProvider;
 
 				// Note that you can set/change the intent any time,
 				// say when the user has selected an image.
@@ -928,7 +941,7 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 				share.putExtra(Intent.EXTRA_SUBJECT, mTitle.getText());
 			share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
 
-			((ShareActionProvider) shareActionProvider).setShareIntent(share);
+//			((ShareActionProvider) shareActionProvider).setShareIntent(share);
 		}
 	}
 

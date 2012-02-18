@@ -7,17 +7,20 @@ import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.accounts.OperationCanceledException;
-import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
-import android.preference.PreferenceFragment;
+import android.preference.PreferenceActivity;
 import android.util.Log;
+import android.view.MenuItem;
 
-public class NotesPreferenceFragment extends PreferenceFragment implements
+public class NotesPreferenceFragment extends PreferenceActivity implements
 		OnSharedPreferenceChangeListener, AccountManagerCallback<Bundle> {
 	public static final String KEY_THEME = "key_current_theme";
 	public static final String KEY_SORT_ORDER = "key_sort_order";
@@ -38,6 +41,7 @@ public class NotesPreferenceFragment extends PreferenceFragment implements
 	public static final String THEME_LIGHT = "light";
 	public static final String THEME_LIGHT_ICS_AB = "light_ab";
 	private static final String TAG = "NotesPreferenceFragment";
+	private static final int DIALOG_ACCOUNTS = 23;
 
 	private Preference prefSortOrder;
 	private Preference prefSortType;
@@ -47,21 +51,21 @@ public class NotesPreferenceFragment extends PreferenceFragment implements
 	public String SUMMARY_SORT_TYPE;
 	public String SUMMARY_SORT_ORDER;
 	public String SUMMARY_THEME;
-	private Activity activity;
 
 	private Account account;
 	private Preference prefAccount;
 	private Preference prefSyncFreq;
 
 	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		this.activity = activity;
-	}
-
-	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		if (NotesPreferenceFragment.THEME_DARK
+				.equals(FragmentLayout.currentTheme)) {
+			setTheme(R.style.ThemeHoloDialogNoActionBar);
+		} else {
+			setTheme(R.style.ThemeHoloLightDialogNoActionBar);
+		}
 
 		// Load the preferences from an XML resource
 		addPreferencesFromResource(R.xml.main_preferences);
@@ -103,10 +107,47 @@ public class NotesPreferenceFragment extends PreferenceFragment implements
 				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 					public boolean onPreferenceClick(Preference preference) {
 						// Show dialog
-						activity.showDialog(FragmentLayout.NotesPreferencesDialog.DIALOG_ACCOUNTS);
+						showDialog(DIALOG_ACCOUNTS);
 						return true;
 					}
 				});
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		// TODO
+//		case android.R.id.home:
+//			finish();
+//			break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case DIALOG_ACCOUNTS:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Select a Google account");
+			final Account[] accounts = AccountManager.get(this)
+					.getAccountsByType("com.google");
+			final int size = accounts.length;
+			String[] names = new String[size];
+			for (int i = 0; i < size; i++) {
+				names[i] = accounts[i].name;
+			}
+			// TODO
+			// Could add a clear alternative here
+			builder.setItems(names, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					// Stuff to do when the account is selected by the user
+					accountSelected(accounts[which]);
+				}
+			});
+			return builder.create();
+		}
+		return null;
 	}
 
 	/**
@@ -121,8 +162,8 @@ public class NotesPreferenceFragment extends PreferenceFragment implements
 			this.account = account;
 			if (FragmentLayout.UI_DEBUG_PRINTS) Log.d(TAG, "Trying to get permission");
 			// Request user's permission
-			AccountManager.get(activity).getAuthToken(account,
-					SyncAdapter.AUTH_TOKEN_TYPE, null, activity, this, null);
+			AccountManager.get(this).getAuthToken(account,
+					SyncAdapter.AUTH_TOKEN_TYPE, null, this, this, null);
 			// work continues in callback, method run()
 		}
 	}
@@ -130,7 +171,7 @@ public class NotesPreferenceFragment extends PreferenceFragment implements
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
 		try {
-			if (activity.isFinishing()) {
+			if (isFinishing()) {
 				if (FragmentLayout.UI_DEBUG_PRINTS) Log.d("settings", "isFinishing, should not update summaries");
 				// Setting the summary now would crash it with
 				// IllegalStateException since we are not attached to a view
@@ -195,14 +236,14 @@ public class NotesPreferenceFragment extends PreferenceFragment implements
 		} else if (freqMins == 0) {
 			// Disable periodic syncing
 			ContentResolver.removePeriodicSync(
-					getAccount(AccountManager.get(activity), accountName),
+					getAccount(AccountManager.get(this), accountName),
 					NotePad.AUTHORITY, new Bundle());
 		} else {
 			// Convert from minutes to seconds
 			long pollFrequency = freqMins * 60;
 			// Set periodic syncing
 			ContentResolver.addPeriodicSync(
-					getAccount(AccountManager.get(activity), accountName),
+					getAccount(AccountManager.get(this), accountName),
 					NotePad.AUTHORITY, new Bundle(), pollFrequency);
 		}
 	}
@@ -215,14 +256,14 @@ public class NotesPreferenceFragment extends PreferenceFragment implements
 		} else if (enabled) {
 			// set syncable
 			ContentResolver.setIsSyncable(
-					getAccount(AccountManager.get(activity), accountName),
+					getAccount(AccountManager.get(this), accountName),
 					NotePad.AUTHORITY, 1);
 			// Also set sync frequency
 			setSyncInterval(sharedPreferences);
 		} else {
 			// set unsyncable
 			ContentResolver.setIsSyncable(
-					getAccount(AccountManager.get(activity), accountName),
+					getAccount(AccountManager.get(this), accountName),
 					NotePad.AUTHORITY, 0);
 		}
 	}

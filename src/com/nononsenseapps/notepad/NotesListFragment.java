@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.nononsenseapps.notepad.FragmentLayout.NotesEditorActivity;
-import com.nononsenseapps.notepad.FragmentLayout.NotesPreferencesDialog;
 import com.nononsenseapps.notepad.interfaces.DeleteActionListener;
 import com.nononsenseapps.notepad.interfaces.OnEditorDeleteListener;
 import com.nononsenseapps.notepad.interfaces.OnModalDeleteListener;
@@ -16,15 +15,11 @@ import com.nononsenseapps.notepad.sync.SyncAdapter;
 import com.nononsenseapps.ui.NoteCheckBox;
 
 import android.content.BroadcastReceiver;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
@@ -36,33 +31,41 @@ import android.preference.PreferenceManager;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
-import android.app.LoaderManager;
 import android.app.SearchManager;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.app.ListFragment;
-import android.widget.SimpleCursorAdapter;
 
+import android.support.v4.app.ListFragment;
+import android.text.ClipboardManager;
 import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.util.Log;
-import android.view.ActionMode;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
 import android.view.View;
-import android.widget.AbsListView.MultiChoiceModeListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListView;
-import android.widget.SearchView;
-import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class NotesListFragment extends ListFragment implements
-		SearchView.OnQueryTextListener, OnItemLongClickListener,
+import android.support.v4.widget.SearchViewCompat;
+import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.OnNavigationListener;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.ActionMode;
+
+public class NotesListFragment extends ListFragment implements OnItemLongClickListener,
 		OnModalDeleteListener, Refresher,
 		LoaderManager.LoaderCallbacks<Cursor>, OnSharedPreferenceChangeListener {
 	private int mCurCheckPosition = 0;
@@ -100,7 +103,7 @@ public class NotesListFragment extends ListFragment implements
 	private boolean idInvalid = false;
 	private boolean posInvalid = false;
 
-	public SearchView mSearchView;
+	//public SearchViewCompat mSearchView;
 	public MenuItem mSearchItem;
 
 	private String currentQuery = "";
@@ -112,7 +115,7 @@ public class NotesListFragment extends ListFragment implements
 
 	private ListView lv;
 
-	private Activity activity;
+	private FragmentActivity activity;
 
 	private OnEditorDeleteListener onDeleteListener;
 
@@ -147,12 +150,14 @@ public class NotesListFragment extends ListFragment implements
 		}
 	};
 
+	private ActionMode mMode;
+
 	@Override
 	public void onAttach(Activity activity) {
 		if (FragmentLayout.UI_DEBUG_PRINTS)
 			Log.d(TAG, "onAttach");
 		super.onAttach(activity);
-		this.activity = activity;
+		this.activity = (FragmentActivity) activity;
 	}
 
 	@Override
@@ -213,12 +218,12 @@ public class NotesListFragment extends ListFragment implements
 	private void setupSearchView() {
 		if (FragmentLayout.UI_DEBUG_PRINTS)
 			Log.d("NotesListFragment", "setup search view");
-		if (mSearchView != null) {
-			mSearchView.setIconifiedByDefault(true);
-			mSearchView.setOnQueryTextListener(this);
-			mSearchView.setSubmitButtonEnabled(false);
-			mSearchView.setQueryHint(getString(R.string.search_hint));
-		}
+//		if (mSearchView != null) {
+//			mSearchView.setIconifiedByDefault(true);
+//			mSearchView.setOnQueryTextListener(this);
+//			mSearchView.setSubmitButtonEnabled(false);
+//			mSearchView.setQueryHint(getString(R.string.search_hint));
+//		}
 	}
 
 	private int getPosOfId(long id) {
@@ -250,10 +255,10 @@ public class NotesListFragment extends ListFragment implements
 		SearchManager searchManager = (SearchManager) activity
 				.getSystemService(Context.SEARCH_SERVICE);
 		mSearchItem = menu.findItem(R.id.menu_search);
-		mSearchView = (SearchView) mSearchItem.getActionView();
-		if (mSearchView != null)
-			mSearchView.setSearchableInfo(searchManager
-					.getSearchableInfo(activity.getComponentName()));
+//		mSearchView = (SearchView) mSearchItem.getActionView();
+//		if (mSearchView != null)
+//			mSearchView.setSearchableInfo(searchManager
+//					.getSearchableInfo(activity.getComponentName()));
 		// searchView.setIconifiedByDefault(true); // Do iconify the widget;
 		// Don't
 		// // expand by default
@@ -321,7 +326,7 @@ public class NotesListFragment extends ListFragment implements
 			} else {
 				// The user might want to enable syncing. Open preferences
 				Intent intent = new Intent();
-				intent.setClass(activity, NotesPreferencesDialog.class);
+				intent.setClass(activity, NotesPreferenceFragment.class);
 				startActivity(intent);
 			}
 			return true;
@@ -359,13 +364,13 @@ public class NotesListFragment extends ListFragment implements
 		PreferenceManager.getDefaultSharedPreferences(activity)
 				.registerOnSharedPreferenceChangeListener(this);
 
-		if (FragmentLayout.AT_LEAST_ICS) {
-			// Share action provider
-			modeCallback = new ModeCallbackICS(this);
-		} else if (FragmentLayout.AT_LEAST_HC) {
+//		if (FragmentLayout.AT_LEAST_ICS) {
+//			// Share action provider
+//			modeCallback = new ModeCallbackICS(this);
+//		} else if (FragmentLayout.AT_LEAST_HC) {
 			// Share button
 			modeCallback = new ModeCallbackHC(this);
-		}
+//		}
 
 		if (savedInstanceState != null) {
 			if (FragmentLayout.UI_DEBUG_PRINTS)
@@ -726,10 +731,13 @@ public class NotesListFragment extends ListFragment implements
 		// Do this on long press
 		checkMode = CHECK_MULTI;
 		// ListView lv = getListView();
-		lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-		lv.clearChoices();
-		lv.setMultiChoiceModeListener(modeCallback);
-		lv.setItemChecked(pos, true);
+//		lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+//		lv.clearChoices();
+//		lv.setMultiChoiceModeListener(modeCallback);
+//		lv.setItemChecked(pos, true);
+		
+		// TODO fix
+		//mMode = startActionMode(modeCallback);
 	}
 
 	/**
@@ -796,7 +804,7 @@ public class NotesListFragment extends ListFragment implements
 		}
 	}
 
-	private class ModeCallbackHC implements MultiChoiceModeListener,
+	private final class ModeCallbackHC implements ActionMode.Callback,
 			DeleteActionListener {
 
 		protected NotesListFragment list;
@@ -807,7 +815,7 @@ public class NotesListFragment extends ListFragment implements
 
 		protected HashSet<Integer> notesToDelete;
 
-		protected ActionMode mode;
+		//protected ActionMode mode;
 
 		public ModeCallbackHC(NotesListFragment list) {
 			textToShare = new HashMap<Long, String>();
@@ -904,76 +912,36 @@ public class NotesListFragment extends ListFragment implements
 		}
 
 		@Override
-		public boolean onCreateActionMode(android.view.ActionMode mode,
-				android.view.Menu menu) {
+		public boolean onCreateActionMode(ActionMode mode,
+				Menu menu) {
 			if (FragmentLayout.UI_DEBUG_PRINTS)
 				Log.d("MODALMAN", "onCreateActionMode mode: " + mode);
 			// Clear data!
 			this.textToShare.clear();
 			this.notesToDelete.clear();
 
-			MenuInflater inflater = activity.getMenuInflater();
+			MenuInflater inflater = activity.getSupportMenuInflater();
 			// if (FragmentLayout.lightTheme)
 			// inflater.inflate(R.menu.list_select_menu_light, menu);
 			// else
 			inflater.inflate(R.menu.list_select_menu, menu);
 			mode.setTitle("Select Items");
 
-			this.mode = mode;
+			//this.mode = mode;
 
 			return true;
 		}
 
 		@Override
-		public boolean onPrepareActionMode(android.view.ActionMode mode,
-				android.view.Menu menu) {
-			return true;
-		}
-
-		@Override
-		public boolean onActionItemClicked(android.view.ActionMode mode,
-				android.view.MenuItem item) {
-			if (FragmentLayout.UI_DEBUG_PRINTS)
-				Log.d("MODALMAN", "onActionItemClicked mode: " + mode);
-			switch (item.getItemId()) {
-			case R.id.modal_share:
-				shareNote(buildTextToShare());
-				mode.finish();
-				break;
-			case R.id.modal_copy:
-				ClipboardManager clipboard = (ClipboardManager) activity
-						.getSystemService(Context.CLIPBOARD_SERVICE);
-				// ICS style
-				clipboard.setPrimaryClip(ClipData.newPlainText("Note",
-						buildTextToShare()));
-				Toast.makeText(
-						activity,
-						"Copied " + getListView().getCheckedItemCount()
-								+ " notes to clipboard", Toast.LENGTH_SHORT)
-						.show();
-				mode.finish();
-				break;
-			case R.id.modal_delete:
-				onDeleteAction();
-				break;
-			default:
-				// Toast.makeText(activity, "Clicked " + item.getTitle(),
-				// Toast.LENGTH_SHORT).show();
-				break;
-			}
-			return true;
-		}
-
-		@Override
-		public void onDestroyActionMode(android.view.ActionMode mode) {
+		public void onDestroyActionMode(ActionMode mode) {
 			if (FragmentLayout.UI_DEBUG_PRINTS)
 				Log.d("modeCallback", "onDestroyActionMode: " + mode.toString()
 						+ ", " + mode.getMenu().toString());
 			list.setFutureSingleCheck();
 		}
 
-		@Override
-		public void onItemCheckedStateChanged(android.view.ActionMode mode,
+		// FIX
+		public void onItemCheckedStateChanged(ActionMode mode,
 				int position, long id, boolean checked) {
 			// Set the share intent with updated text
 			if (checked) {
@@ -1045,73 +1013,48 @@ public class NotesListFragment extends ListFragment implements
 			}
 			Toast.makeText(activity, "Deleted " + num + " items",
 					Toast.LENGTH_SHORT).show();
-			mode.finish();
-		}
-
-	}
-
-	private class ModeCallbackICS extends ModeCallbackHC {
-
-		protected ShareActionProvider actionProvider;
-
-		@Override
-		public void onItemCheckedStateChanged(android.view.ActionMode mode,
-				int position, long id, boolean checked) {
-			super.onItemCheckedStateChanged(mode, position, id, checked);
-
-			if (actionProvider != null) {
-				actionProvider
-						.setShareIntent(createShareIntent(buildTextToShare()));
-			}
-
+			mMode.finish();
 		}
 
 		@Override
-		public boolean onCreateActionMode(android.view.ActionMode mode,
-				android.view.Menu menu) {
+		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
 			if (FragmentLayout.UI_DEBUG_PRINTS)
-				Log.d("modeCallBack", "onCreateActionMode " + mode);
-			this.textToShare.clear();
-			this.notesToDelete.clear();
-
-			MenuInflater inflater = activity.getMenuInflater();
-			// if (FragmentLayout.lightTheme)
-			// inflater.inflate(R.menu.list_select_menu_light, menu);
-			// else
-			inflater.inflate(R.menu.list_select_menu, menu);
-			mode.setTitle("Select Items");
-
-			this.mode = mode;
-
-			// Set file with share history to the provider and set the share
-			// intent.
-			android.view.MenuItem actionItem = menu
-					.findItem(R.id.modal_item_share_action_provider_action_bar);
-
-			actionProvider = (ShareActionProvider) actionItem
-					.getActionProvider();
-			actionProvider
-					.setShareHistoryFileName(ShareActionProvider.DEFAULT_SHARE_HISTORY_FILE_NAME);
-			// Note that you can set/change the intent any time,
-			// say when the user has selected an image.
-			actionProvider
-					.setShareIntent(createShareIntent(buildTextToShare()));
-
-			// Now the delete action provider
-			// Set delete listener to this
-			actionItem = menu.findItem(R.id.modal_action_delete);
-
-			DeleteActionProvider deleteProvider = (DeleteActionProvider) actionItem
-					.getActionProvider();
-
-			// Make sure containing activity implements listener interface
-			deleteProvider.setDeleteActionListener(this);
-
+				Log.d("MODALMAN", "onActionItemClicked mode: " + mode);
+			switch (item.getItemId()) {
+			case R.id.modal_share:
+				shareNote(buildTextToShare());
+				mode.finish();
+				break;
+			case R.id.modal_copy:
+				ClipboardManager clipboard = (ClipboardManager) activity
+						.getSystemService(Context.CLIPBOARD_SERVICE);
+				// ICS style
+//				clipboard.setPrimaryClip(ClipData.newPlainText("Note",
+//						buildTextToShare()));
+				// Gingerbread style.
+				clipboard.setText(buildTextToShare());
+				Toast.makeText(
+						activity,
+						"Copied " + getListView().getCheckedItemCount()
+								+ " notes to clipboard", Toast.LENGTH_SHORT)
+						.show();
+				mode.finish();
+				break;
+			case R.id.modal_delete:
+				onDeleteAction();
+				break;
+			default:
+				// Toast.makeText(activity, "Clicked " + item.getTitle(),
+				// Toast.LENGTH_SHORT).show();
+				break;
+			}
 			return true;
-		}
-
-		public ModeCallbackICS(NotesListFragment list) {
-			super(list);
 		}
 
 	}

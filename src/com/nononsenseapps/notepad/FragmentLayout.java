@@ -8,20 +8,14 @@ import com.nononsenseapps.notepad.interfaces.OnEditorDeleteListener;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.app.ActionBar;
-import android.app.ActionBar.OnNavigationListener;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.FragmentTransaction;
-import android.app.LoaderManager;
 import android.app.SearchManager;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
@@ -31,19 +25,29 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.SimpleCursorAdapter;
+
+import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.OnNavigationListener;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 /**
  * Showing a single fragment in an activity.
  */
-public class FragmentLayout extends Activity implements
+public class FragmentLayout extends FragmentActivity implements
 		OnSharedPreferenceChangeListener, OnEditorDeleteListener,
 		DeleteActionListener, OnNavigationListener,
 		LoaderManager.LoaderCallbacks<Cursor> {
@@ -91,7 +95,7 @@ public class FragmentLayout extends Activity implements
 		readAndSetSettings();
 
 		// Set up dropdown navigation
-		ActionBar actionBar = getActionBar();
+		ActionBar actionBar = getSupportActionBar();
 		actionBar.setDisplayShowTitleEnabled(false);
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 
@@ -99,11 +103,11 @@ public class FragmentLayout extends Activity implements
 		mSpinnerAdapter = new SimpleCursorAdapter(this,
 				android.R.layout.simple_spinner_dropdown_item, null,
 				new String[] { NotePad.Lists.COLUMN_NAME_TITLE },
-				new int[] { android.R.id.text1 });
+				new int[] { android.R.id.text1 }, 0);
 
 		// This will listen for navigation callbacks
 		actionBar.setListNavigationCallbacks(mSpinnerAdapter, this);
-		getLoaderManager().initLoader(0, null, this);
+		getSupportLoaderManager().initLoader(0, null, this);
 
 		if (FragmentLayout.UI_DEBUG_PRINTS)
 			Log.d("Activity", "onCreate before");
@@ -116,7 +120,7 @@ public class FragmentLayout extends Activity implements
 			Log.d("Activity", "onCreate after");
 
 		// Set this as delete listener
-		NotesListFragment list = (NotesListFragment) getFragmentManager()
+		NotesListFragment list = (NotesListFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.noteslistfragment);
 
 		list.setOnDeleteListener(this);
@@ -200,12 +204,12 @@ public class FragmentLayout extends Activity implements
 		// Intent intent = getIntent();
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			String query = intent.getStringExtra(SearchManager.QUERY);
-			// list.onQueryTextChange(query);
-			if (list != null && list.mSearchView != null) {
-				list.mSearchView.setQuery(query, false);
-			} else if (list != null) {
-				list.onQueryTextSubmit(query);
-			}
+			// TODO fix
+//			if (list != null && list.mSearchView != null) {
+//				list.mSearchView.setQuery(query, false);
+//			} else if (list != null) {
+//				list.onQueryTextSubmit(query);
+//			}
 		} else {
 			if (this.list != null) {
 				if (FragmentLayout.UI_DEBUG_PRINTS)
@@ -336,7 +340,7 @@ public class FragmentLayout extends Activity implements
 						getContentResolver(),
 						Long.parseLong(listUri.getPathSegments().get(
 								NotePad.Lists.ID_PATH_POSITION)));
-				getActionBar()
+				getSupportActionBar()
 						.setSelectedNavigationItem(
 								getPosOfId(Long.parseLong(listUri
 										.getLastPathSegment())));
@@ -501,7 +505,7 @@ public class FragmentLayout extends Activity implements
 	private void showPrefs() {
 		// launch a new activity to display the dialog
 		Intent intent = new Intent();
-		intent.setClass(this, NotesPreferencesDialog.class);
+		intent.setClass(this, NotesPreferenceFragment.class);
 		startActivity(intent);
 	}
 
@@ -509,7 +513,7 @@ public class FragmentLayout extends Activity implements
 	 * This is a secondary activity, to show what the user has selected when the
 	 * screen is not large enough to show it all in one activity.
 	 */
-	public static class NotesEditorActivity extends Activity implements
+	public static class NotesEditorActivity extends FragmentActivity implements
 			DeleteActionListener {
 		private static final String TAG = "NotesEditorActivity";
 		private NotesEditorFragment editorFragment;
@@ -540,7 +544,7 @@ public class FragmentLayout extends Activity implements
 			// }
 
 			// Set up navigation (adds nice arrow to icon)
-			ActionBar actionBar = getActionBar();
+			ActionBar actionBar = getSupportActionBar();
 			if (actionBar != null) {
 				actionBar.setDisplayHomeAsUpEnabled(true);
 				actionBar.setDisplayShowTitleEnabled(false);
@@ -567,7 +571,7 @@ public class FragmentLayout extends Activity implements
 			// if (savedInstanceState == null) {
 			// During initial setup, plug in the details fragment.
 			// Set this as delete listener
-			editorFragment = (NotesEditorFragment) getFragmentManager()
+			editorFragment = (NotesEditorFragment) getSupportFragmentManager()
 					.findFragmentById(R.id.portrait_editor);
 			if (editorFragment != null) {
 				editorFragment.setValues(currentId, listId);
@@ -577,14 +581,15 @@ public class FragmentLayout extends Activity implements
 		@Override
 		public boolean onOptionsItemSelected(MenuItem item) {
 			switch (item.getItemId()) {
-			case android.R.id.home:
-				finish();
-				break;
+			// TODO
+//			case android.R.id.home:
+//				finish();
+//				break;
 			case R.id.menu_delete:
 				onDeleteAction();
 				return true;
 			case R.id.menu_revert:
-				setResult(Activity.RESULT_CANCELED);
+				setResult(SherlockActivity.RESULT_CANCELED);
 				finish();
 				break;
 			}
@@ -632,7 +637,7 @@ public class FragmentLayout extends Activity implements
 											// note
 			FragmentLayout.deleteNote(getContentResolver(),
 					editorFragment.getCurrentNoteId());
-			setResult(Activity.RESULT_CANCELED);
+			setResult(SherlockActivity.RESULT_CANCELED);
 			finish();
 		}
 	}
@@ -703,7 +708,7 @@ public class FragmentLayout extends Activity implements
 		if (ids.contains(curId)) {
 			Log.d("FragmentLayout",
 					"id was contained in multidelete, setting no save first");
-			NotesEditorFragment editor = (NotesEditorFragment) getFragmentManager()
+			NotesEditorFragment editor = (NotesEditorFragment) getSupportFragmentManager()
 					.findFragmentById(R.id.editor_container);
 			if (editor != null) {
 				editor.setSelfAction();
@@ -714,72 +719,12 @@ public class FragmentLayout extends Activity implements
 		deleteNotes(getContentResolver(), ids);
 	}
 
-	public static class NotesPreferencesDialog extends Activity {
-		public static final int DIALOG_ACCOUNTS = 23;
-		private NotesPreferenceFragment prefFragment;
-
-		@Override
-		protected void onCreate(Bundle savedInstanceState) {
-			super.onCreate(savedInstanceState);
-
-			if (NotesPreferenceFragment.THEME_DARK
-					.equals(FragmentLayout.currentTheme)) {
-				setTheme(R.style.ThemeHoloDialogNoActionBar);
-			} else {
-				setTheme(R.style.ThemeHoloLightDialogNoActionBar);
-			}
-
-			// Display the fragment as the main content.
-			prefFragment = new NotesPreferenceFragment();
-			FragmentTransaction ft = getFragmentManager().beginTransaction();
-			ft.replace(android.R.id.content, prefFragment);
-			ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-			ft.commit();
-		}
-
-		@Override
-		public boolean onOptionsItemSelected(MenuItem item) {
-			switch (item.getItemId()) {
-			case android.R.id.home:
-				finish();
-				break;
-			}
-			return super.onOptionsItemSelected(item);
-		}
-
-		@Override
-		protected Dialog onCreateDialog(int id) {
-			switch (id) {
-			case DIALOG_ACCOUNTS:
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle("Select a Google account");
-				final Account[] accounts = AccountManager.get(this)
-						.getAccountsByType("com.google");
-				final int size = accounts.length;
-				String[] names = new String[size];
-				for (int i = 0; i < size; i++) {
-					names[i] = accounts[i].name;
-				}
-				// TODO
-				// Could add a clear alternative here
-				builder.setItems(names, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						// Stuff to do when the account is selected by the user
-						prefFragment.accountSelected(accounts[which]);
-					}
-				});
-				return builder.create();
-			}
-			return null;
-		}
-	}
-
 	@Override
 	public void onDeleteAction() {
 		// both list and editor should be notified
-		NotesListFragment list = (NotesListFragment) getFragmentManager()
+		NotesListFragment list = (NotesListFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.noteslistfragment);
-		NotesEditorFragment editor = (NotesEditorFragment) getFragmentManager()
+		NotesEditorFragment editor = (NotesEditorFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.editor_container);
 		if (editor != null)
 			editor.setSelfAction();
@@ -834,7 +779,7 @@ public class FragmentLayout extends Activity implements
 			// User created a list, we want to display it
 			prevNumberOfLists = mSpinnerAdapter.getCount();
 			// Now select it. Using modified desc, will always be first item.
-			getActionBar().setSelectedNavigationItem(0);
+			getSupportActionBar().setSelectedNavigationItem(0);
 		}
 		if (optionsMenu != null) {
 			MenuItem createNote = optionsMenu.findItem(R.id.menu_add);

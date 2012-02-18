@@ -29,7 +29,7 @@
     android:versionName="3.0.4" >
 
     <uses-sdk
-        android:minSdkVersion="11"
+        android:minSdkVersion="10"
         android:targetSdkVersion="15" />
 
     <!-- For connection -->
@@ -126,7 +126,7 @@
 
         </activity>
         <activity
-            android:name=".FragmentLayout$NotesPreferencesDialog"
+            android:name=".NotesPreferenceFragment"
             android:screenOrientation="sensor"
             android:theme="@style/ThemeHoloDialogNoActionBar" >
         </activity>

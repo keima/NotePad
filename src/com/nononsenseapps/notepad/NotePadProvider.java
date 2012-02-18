@@ -18,13 +18,12 @@ package com.nononsenseapps.notepad;
 
 import com.nononsenseapps.notepad.NotePad;
 
-import android.content.ClipDescription;
+//import android.content.ClipDescription;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
-import android.content.ContentProvider.PipeDataWriter;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -51,8 +50,9 @@ import java.util.HashMap;
  * Provides access to a database of notes. Each note has a title, the note
  * itself, a creation date and a modified data.
  */
-public class NotePadProvider extends ContentProvider implements
-		PipeDataWriter<Cursor> {
+public class NotePadProvider extends ContentProvider
+//implements PipeDataWriter<Cursor> 
+{
 	// Used for debugging and logging
 	private static final String TAG = "NotePadProvider";
 
@@ -468,12 +468,12 @@ public class NotePadProvider extends ContentProvider implements
 				}
 		}
 
-		@Override
-		public void onDowngrade(SQLiteDatabase db, int oldVersion,
-				int newVersion) {
-			// This should be allright to do. Can only see this happening in
-			// testing
-		}
+//		@Override
+//		public void onDowngrade(SQLiteDatabase db, int oldVersion,
+//				int newVersion) {
+//			// This should be allright to do. Can only see this happening in
+//			// testing
+//		}
 	}
 
 	/**
@@ -681,8 +681,8 @@ public class NotePadProvider extends ContentProvider implements
 	 * This describes the MIME types that are supported for opening a note URI
 	 * as a stream.
 	 */
-	static ClipDescription NOTE_STREAM_TYPES = new ClipDescription(null,
-			new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN });
+//	static ClipDescription NOTE_STREAM_TYPES = new ClipDescription(null,
+//			new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN });
 
 	/**
 	 * Returns the types of available data streams. URIs to specific notes are
@@ -699,37 +699,37 @@ public class NotePadProvider extends ContentProvider implements
 	 * @throws IllegalArgumentException
 	 *             if the URI pattern doesn't match any supported patterns.
 	 */
-	@Override
-	public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
-		/**
-		 * Chooses the data stream type based on the incoming URI pattern.
-		 */
-		switch (sUriMatcher.match(uri)) {
-
-		// If the pattern is for notes or live folders, return null. Data
-		// streams are not
-		// supported for this type of URI.
-		case NOTES:
-		case LISTS:
-		case LISTS_ID:
-		case GTASKLISTS:
-		case GTASKLISTS_ID:
-		case GTASKS:
-		case GTASKS_ID:
-			return null;
-
-			// If the pattern is for note IDs and the MIME filter is text/plain,
-			// then return
-			// text/plain
-		case NOTE_ID:
-			return NOTE_STREAM_TYPES.filterMimeTypes(mimeTypeFilter);
-
-			// If the URI pattern doesn't match any permitted patterns, throws
-			// an exception.
-		default:
-			throw new IllegalArgumentException("Unknown URI " + uri);
-		}
-	}
+//	@Override
+//	public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
+//		/**
+//		 * Chooses the data stream type based on the incoming URI pattern.
+//		 */
+//		switch (sUriMatcher.match(uri)) {
+//
+//		// If the pattern is for notes or live folders, return null. Data
+//		// streams are not
+//		// supported for this type of URI.
+//		case NOTES:
+//		case LISTS:
+//		case LISTS_ID:
+//		case GTASKLISTS:
+//		case GTASKLISTS_ID:
+//		case GTASKS:
+//		case GTASKS_ID:
+//			return null;
+//
+//			// If the pattern is for note IDs and the MIME filter is text/plain,
+//			// then return
+//			// text/plain
+//		case NOTE_ID:
+//			return NOTE_STREAM_TYPES.filterMimeTypes(mimeTypeFilter);
+//
+//			// If the URI pattern doesn't match any permitted patterns, throws
+//			// an exception.
+//		default:
+//			throw new IllegalArgumentException("Unknown URI " + uri);
+//		}
+//	}
 
 	/**
 	 * Returns a stream of data for each supported stream type. This method does
@@ -749,83 +749,83 @@ public class NotePadProvider extends ContentProvider implements
 	 * @throws FileNotFoundException
 	 *             if there is no file associated with the incoming URI.
 	 */
-	@Override
-	public AssetFileDescriptor openTypedAssetFile(Uri uri,
-			String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
-
-		// Checks to see if the MIME type filter matches a supported MIME type.
-		String[] mimeTypes = getStreamTypes(uri, mimeTypeFilter);
-
-		// If the MIME type is supported
-		if (mimeTypes != null) {
-
-			// Retrieves the note for this URI. Uses the query method defined
-			// for this provider,
-			// rather than using the database query method.
-			Cursor c = query(uri, // The URI of a note
-					READ_NOTE_PROJECTION, // Gets a projection containing the
-											// note's ID, title,
-											// and contents
-					null, // No WHERE clause, get all matching records
-					null, // Since there is no WHERE clause, no selection
-							// criteria
-					null // Use the default sort order (modification date,
-							// descending
-			);
-
-			// If the query fails or the cursor is empty, stop
-			if (c == null || !c.moveToFirst()) {
-
-				// If the cursor is empty, simply close the cursor and return
-				if (c != null) {
-					c.close();
-				}
-
-				// If the cursor is null, throw an exception
-				throw new FileNotFoundException("Unable to query " + uri);
-			}
-
-			// Start a new thread that pipes the stream data back to the caller.
-			return new AssetFileDescriptor(openPipeHelper(uri, mimeTypes[0],
-					opts, c, this), 0, AssetFileDescriptor.UNKNOWN_LENGTH);
-		}
-
-		// If the MIME type is not supported, return a read-only handle to the
-		// file.
-		return super.openTypedAssetFile(uri, mimeTypeFilter, opts);
-	}
+//	@Override
+//	public AssetFileDescriptor openTypedAssetFile(Uri uri,
+//			String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
+//
+//		// Checks to see if the MIME type filter matches a supported MIME type.
+//		String[] mimeTypes = getStreamTypes(uri, mimeTypeFilter);
+//
+//		// If the MIME type is supported
+//		if (mimeTypes != null) {
+//
+//			// Retrieves the note for this URI. Uses the query method defined
+//			// for this provider,
+//			// rather than using the database query method.
+//			Cursor c = query(uri, // The URI of a note
+//					READ_NOTE_PROJECTION, // Gets a projection containing the
+//											// note's ID, title,
+//											// and contents
+//					null, // No WHERE clause, get all matching records
+//					null, // Since there is no WHERE clause, no selection
+//							// criteria
+//					null // Use the default sort order (modification date,
+//							// descending
+//			);
+//
+//			// If the query fails or the cursor is empty, stop
+//			if (c == null || !c.moveToFirst()) {
+//
+//				// If the cursor is empty, simply close the cursor and return
+//				if (c != null) {
+//					c.close();
+//				}
+//
+//				// If the cursor is null, throw an exception
+//				throw new FileNotFoundException("Unable to query " + uri);
+//			}
+//
+//			// Start a new thread that pipes the stream data back to the caller.
+//			return new AssetFileDescriptor(openPipeHelper(uri, mimeTypes[0],
+//					opts, c, this), 0, AssetFileDescriptor.UNKNOWN_LENGTH);
+//		}
+//
+//		// If the MIME type is not supported, return a read-only handle to the
+//		// file.
+//		return super.openTypedAssetFile(uri, mimeTypeFilter, opts);
+//	}
 
 	/**
 	 * Implementation of {@link android.content.ContentProvider.PipeDataWriter}
 	 * to perform the actual work of converting the data in one of cursors to a
 	 * stream of data for the client to read.
 	 */
-	// @Override
-	public void writeDataToPipe(ParcelFileDescriptor output, Uri uri,
-			String mimeType, Bundle opts, Cursor c) {
-		// We currently only support conversion-to-text from a single note
-		// entry,
-		// so no need for cursor data type checking here.
-		FileOutputStream fout = new FileOutputStream(output.getFileDescriptor());
-		PrintWriter pw = null;
-		try {
-			pw = new PrintWriter(new OutputStreamWriter(fout, "UTF-8"));
-			pw.println(c.getString(READ_NOTE_TITLE_INDEX));
-			pw.println("");
-			pw.println(c.getString(READ_NOTE_NOTE_INDEX));
-		} catch (UnsupportedEncodingException e) {
-			// Log.w(TAG, "Ooops", e);
-		} finally {
-			c.close();
-			if (pw != null) {
-				pw.flush();
-			}
-			try {
-				fout.close();
-			} catch (IOException e) {
-			}
-		}
-	}
+//	@Override
+//	public void writeDataToPipe(ParcelFileDescriptor output, Uri uri,
+//			String mimeType, Bundle opts, Cursor c) {
+//		// We currently only support conversion-to-text from a single note
+//		// entry,
+//		// so no need for cursor data type checking here.
+//		FileOutputStream fout = new FileOutputStream(output.getFileDescriptor());
+//		PrintWriter pw = null;
+//		try {
+//			pw = new PrintWriter(new OutputStreamWriter(fout, "UTF-8"));
+//			pw.println(c.getString(READ_NOTE_TITLE_INDEX));
+//			pw.println("");
+//			pw.println(c.getString(READ_NOTE_NOTE_INDEX));
+//		} catch (UnsupportedEncodingException e) {
+//			// Log.w(TAG, "Ooops", e);
+//		} finally {
+//			c.close();
+//			if (pw != null) {
+//				pw.flush();
+//			}
+//			try {
+//				fout.close();
+//			} catch (IOException e) {
+//			}
+//		}
+//	}
 
 	/**
 	 * This is called when a client calls
