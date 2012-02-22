@@ -111,9 +111,11 @@ public class FragmentLayout extends FragmentActivity implements
 
 		// Will set cursor in Loader
 		mSpinnerAdapter = new SimpleCursorAdapter(this,
-				R.layout.actionbar_dropdown_item, null,
+				R.layout.sherlock_spinner_item, null,
 				new String[] { NotePad.Lists.COLUMN_NAME_TITLE },
 				new int[] { android.R.id.text1 }, 0);
+		
+		mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
 		// This will listen for navigation callbacks
 		actionBar.setListNavigationCallbacks(mSpinnerAdapter, this);
@@ -857,7 +859,7 @@ public class FragmentLayout extends FragmentActivity implements
 			}
 			if (unSelected && currentListPos < prevNumberOfLists) {
 				unSelected = false;
-				getActionBar().setSelectedNavigationItem(currentListPos);
+				getSupportActionBar().setSelectedNavigationItem(currentListPos);
 			}
 		} else if (prevNumberOfLists < mSpinnerAdapter.getCount()) {
 			// User created a list, we want to display it
