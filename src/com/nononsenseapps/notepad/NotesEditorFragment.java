@@ -1,6 +1,7 @@
 package com.nononsenseapps.notepad;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
@@ -339,6 +340,10 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 								// are
 								// necessary.
 						);
+				// This will trigger a sync at an appropriate time
+				// TODO
+				// Is this a good idea?
+				//activity.getContentResolver().notifyChange(mUri, null, true);
 			}
 		}
 	}
@@ -426,7 +431,7 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 
 		noteDueDate = new Time(Time.getCurrentTimezone());
 
-		Calendar c = Calendar.getInstance();
+		Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		year = c.get(Calendar.YEAR);
 		month = c.get(Calendar.MONTH);
 		day = c.get(Calendar.DAY_OF_MONTH);
@@ -485,7 +490,7 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 		if (mDueDate != null) {
 			mDueDate.setText(getText(R.string.editor_due_date_hint));
 			// set year, month, day variables to today
-			Calendar c = Calendar.getInstance();
+			Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 			year = c.get(Calendar.YEAR);
 			month = c.get(Calendar.MONTH);
 			day = c.get(Calendar.DAY_OF_MONTH);
@@ -653,6 +658,10 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 		case R.id.menu_share:
 			shareNote();
 			break;
+		case R.id.menu_sync:
+			// Save note!
+			saveNote();
+			break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -665,7 +674,7 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 
 		if (dueDateSet && noteDueDate != null) {
 
-			Calendar c = Calendar.getInstance();
+			Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 			c.setTimeInMillis(noteDueDate.toMillis(false));
 
 			dueDateSet = true;
@@ -734,14 +743,13 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 
 	private void showNote(Cursor mCursor) {
 		boolean lockdown = false;
-		if (mCursor != null && !mCursor.isClosed() && !mCursor.isAfterLast()) {
+		if (mCursor != null && !mCursor.isClosed() && mCursor.moveToFirst()) {
 			/*
 			 * Moves to the first record. Always call moveToFirst() before
 			 * accessing data in a Cursor for the first time. The semantics of
 			 * using a Cursor are that when it is created, its internal index is
 			 * pointing to a "place" immediately before the first record.
 			 */
-			mCursor.moveToFirst();
 
 			/*
 			 * onResume() may have been called after the Activity lost focus
@@ -842,7 +850,7 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 			try {
 				noteDueDate.parse3339(due);
 				dueDateSet = true;
-				Calendar c = Calendar.getInstance();
+				Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 				c.setTimeInMillis(noteDueDate.toMillis(false));
 
 				mDueDate.setText(DateFormat.format(DATEFORMAT_FORMAT, c));
@@ -973,7 +981,7 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 		this.month = monthOfYear;
 		this.day = dayOfMonth;
 
-		Calendar c = Calendar.getInstance();
+		Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		c.set(year, monthOfYear, dayOfMonth);
 
 		noteDueDate.set(dayOfMonth, monthOfYear, year);

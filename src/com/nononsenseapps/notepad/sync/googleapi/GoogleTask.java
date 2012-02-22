@@ -4,7 +4,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.nononsenseapps.notepad.NotePad;
-import com.nononsenseapps.notepad.sync.SyncAdapter;
 
 import android.content.ContentValues;
 import android.util.Log;
@@ -25,7 +24,7 @@ public class GoogleTask {
 	private static final String POSITION = "position";
 	private static final String HIDDEN = "hidden";
 	public String id = null;
-	public String etag = null;
+	public String etag = "";
 	public String title = null;
 	public String updated = null;
 	public String notes = null;
@@ -33,6 +32,8 @@ public class GoogleTask {
 	public String dueDate = null;
 	public String parent = null;
 	public String position = null;
+	
+	public int modified = 0;
 
 	public long dbId = -1;
 	public int deleted = 0;
@@ -53,7 +54,7 @@ public class GoogleTask {
 		id = jsonTask.getString(ID);
 		title = jsonTask.getString(TITLE);
 		updated = jsonTask.getString(UPDATED);
-		etag = jsonTask.getString("etag");
+		//etag = jsonTask.getString("etag");
 		if (jsonTask.has(NOTES))
 			notes = jsonTask.getString(NOTES);
 		status  = jsonTask.getString(STATUS);
@@ -86,8 +87,8 @@ public class GoogleTask {
 		try {
 			JSONObject json = new JSONObject();
 			String nullAppendage = "";
-			if (id != null)
-				json.put(ID, id);
+//			if (id != null)
+//				json.put(ID, id);
 
 			json.put(TITLE, title);
 			json.put(NOTES, notes);
@@ -107,9 +108,8 @@ public class GoogleTask {
 			String jsonString = json.toString();
 			returnString = jsonString.substring(0, jsonString.length()-1) + nullAppendage;
 
-			if (SyncAdapter.SYNC_DEBUG_PRINTS) Log.d(TAG, returnString);
 		} catch (JSONException e) {
-			if (SyncAdapter.SYNC_DEBUG_PRINTS) Log.d(TAG, e.getLocalizedMessage());
+			Log.d(TAG, e.getLocalizedMessage());
 		}
 
 		return returnString;
@@ -122,7 +122,7 @@ public class GoogleTask {
 	 * 
 	 * @return
 	 */
-	public ContentValues toNotesContentValues(int modified, GoogleTaskList list) {
+	public ContentValues toNotesContentValues(int modified, long listDbId) {
 		ContentValues values = new ContentValues();
 		if (title != null)
 			values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
@@ -136,23 +136,22 @@ public class GoogleTask {
 		if (dbId > -1)
 			values.put(NotePad.Notes._ID, dbId);
 
-		values.put(NotePad.Notes.COLUMN_NAME_LIST, list.dbId);
+		values.put(NotePad.Notes.COLUMN_NAME_LIST, listDbId);
 		values.put(NotePad.Notes.COLUMN_NAME_MODIFIED, modified);
 		values.put(NotePad.Notes.COLUMN_NAME_DELETED, deleted);
 		values.put(NotePad.Notes.COLUMN_NAME_POSITION, position);
 		values.put(NotePad.Notes.COLUMN_NAME_PARENT, parent);
 		values.put(NotePad.Notes.COLUMN_NAME_HIDDEN, hidden);
 		
-		// These values are used to sort it like the server does. Takes some transformation to do this properly.
-		String abcsort = "";
-		String possort = "";
-		if (parent != null && !parent.isEmpty()) {
-			
-		}
-		if (position != null && !position.isEmpty()) {
-			
-		}
+		values.put(NotePad.Notes.COLUMN_NAME_POSSUBSORT, possort);
+		values.put(NotePad.Notes.COLUMN_NAME_ABCSUBSORT, abcsort);
 		
+		return values;
+	}
+	
+	public ContentValues toNotesBackRefContentValues(int listIdIndex) {
+		ContentValues values = new ContentValues();
+		values.put(NotePad.Notes.COLUMN_NAME_LIST, listIdIndex);
 		return values;
 	}
 
@@ -165,4 +164,31 @@ public class GoogleTask {
 		values.put(NotePad.GTasks.COLUMN_NAME_UPDATED, updated);
 		return values;
 	}
+	
+	public ContentValues toGTasksBackRefContentValues(int pos) {
+		ContentValues values = new ContentValues();
+		values.put(NotePad.GTasks.COLUMN_NAME_DB_ID, pos);
+		return values;
+	}
+	
+	/**
+	 * Returns true if the task has the same remote id or same database id.
+	 */
+	@Override
+	public boolean equals(Object o) {
+		boolean equal = false;
+		if (GoogleTask.class.isInstance(o)) {
+			// It's a list!
+			GoogleTask task = (GoogleTask) o;
+			if (dbId != -1 && dbId == task.dbId) {
+				equal = true;
+			}
+			if (id != null && id.equals(task.id)) {
+				equal = true;
+			}
+		}
+		return equal;
+	}
+
+	
 }
