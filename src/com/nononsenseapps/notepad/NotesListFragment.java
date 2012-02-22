@@ -280,6 +280,7 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 		SearchManager searchManager = (SearchManager) activity
 				.getSystemService(Context.SEARCH_SERVICE);
 		mSearchItem = menu.findItem(R.id.menu_search);
+		mSearchItem.setActionView(R.layout.collapsible_edittext);
 //		mSearchView = (SearchView) mSearchItem.getActionView();
 //		if (mSearchView != null)
 //			mSearchView.setSearchableInfo(searchManager
