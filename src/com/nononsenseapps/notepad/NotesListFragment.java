@@ -35,8 +35,10 @@ import android.support.v4.app.ListFragment;
 import android.text.ClipboardManager;
 import android.text.format.Time;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnKeyListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.CompoundButton;
@@ -1046,7 +1048,6 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 
 		@Override
 		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
