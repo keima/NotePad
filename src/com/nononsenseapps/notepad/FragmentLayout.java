@@ -31,8 +31,11 @@ import android.view.KeyEvent;
 
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.app.FragmentActivity;
@@ -45,6 +48,7 @@ import android.support.v4.content.Loader;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.ActionBar.OnNavigationListener;
 import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.ActionMode;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
@@ -54,7 +58,7 @@ import com.actionbarsherlock.view.MenuItem;
 public class FragmentLayout extends FragmentActivity implements
 		OnSharedPreferenceChangeListener, OnEditorDeleteListener,
 		DeleteActionListener, OnNavigationListener,
-		LoaderManager.LoaderCallbacks<Cursor> {
+		LoaderManager.LoaderCallbacks<Cursor>, OnItemLongClickListener {
 	private static final String TAG = "FragmentLayout";
 	private static final String CURRENT_LIST_ID = "currentlistid";
 	private static final String CURRENT_LIST_POS = "currentlistpos";
@@ -68,7 +72,7 @@ public class FragmentLayout extends FragmentActivity implements
 	public static boolean AT_LEAST_ICS;
 	public static boolean AT_LEAST_HC;
 
-	public final static boolean UI_DEBUG_PRINTS = false;
+	public final static boolean UI_DEBUG_PRINTS = true;
 	private static final String DEFAULTLIST = "standardListId";
 
 	public static OnEditorDeleteListener ONDELETELISTENER = null;
@@ -85,6 +89,8 @@ public class FragmentLayout extends FragmentActivity implements
 
 	private int prevNumberOfLists = -1;
 	private long createdListId = -1;
+	private ModeCallbackABS modeCallback;
+	private ActionMode mMode;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -136,6 +142,7 @@ public class FragmentLayout extends FragmentActivity implements
 		list.setOnDeleteListener(this);
 
 		this.list = list;
+		modeCallback = new ModeCallbackABS(list, this);
 		// So editor can access it
 		ONDELETELISTENER = this;
 
@@ -942,5 +949,38 @@ public class FragmentLayout extends FragmentActivity implements
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		mSpinnerAdapter.swapCursor(null);
+	}
+
+	@Override
+	public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+			int position, long id) {
+		if (list != null) {
+			
+			if (list.checkMode == list.CHECK_SINGLE) {
+				ListView lv = list.getListView();
+				list.setCheckModeModal(true);
+				lv.setOnItemClickListener(modeCallback);
+				lv.setOnItemLongClickListener(modeCallback);
+				// Disable long-clicking temporarliy
+				//lv.setLongClickable(false);
+				// get the position which was selected
+				if (FragmentLayout.UI_DEBUG_PRINTS)
+					Log.d("NotesListFragment", "onLongClick, selected item pos: "
+							+ position + ", id: " + id);
+				// change to multiselect mode and select that item
+				if (modeCallback != null) {
+					//checkMode = CHECK_MULTI;
+					lv.clearChoices();
+					lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+					mMode = startActionMode(modeCallback);
+					modeCallback.setActionMode(mMode);
+					lv.setItemChecked(position, true);
+					modeCallback.checkedItemCount = 1;
+					
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

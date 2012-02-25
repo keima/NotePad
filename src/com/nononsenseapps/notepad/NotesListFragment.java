@@ -64,8 +64,7 @@ import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import com.actionbarsherlock.view.ActionMode;
 
-public class NotesListFragment extends ListFragment implements OnItemLongClickListener,
-		OnModalDeleteListener, 
+public class NotesListFragment extends ListFragment implements OnModalDeleteListener,
 		LoaderManager.LoaderCallbacks<Cursor>, OnSharedPreferenceChangeListener {
 	private int mCurCheckPosition = 0;
 
@@ -82,9 +81,9 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 	// For logging and debugging
 	private static final String TAG = "NotesListFragment";
 
-	private static final int CHECK_SINGLE = 1;
-	private static final int CHECK_MULTI = 2;
-	private static final int CHECK_SINGLE_FUTURE = 3;
+	public static final int CHECK_SINGLE = 1;
+	public static final int CHECK_MULTI = 2;
+	public static final int CHECK_SINGLE_FUTURE = 3;
 
 	private static final int STATE_EXISTING_NOTE = 1;
 	private static final int STATE_LIST = 2;
@@ -101,13 +100,13 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 
 	private boolean idInvalid = false;
 
-	//public SearchViewCompat mSearchView;
+	// public SearchViewCompat mSearchView;
 	public MenuItem mSearchItem;
 
 	private String currentQuery = "";
-	private int checkMode = CHECK_SINGLE;
+	public int checkMode = CHECK_SINGLE;
 
-	private ModeCallbackHC modeCallback;
+	private ModeCallbackABS modeCallback;
 
 	private long mCurListId = -1;
 
@@ -147,8 +146,6 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 			}
 		}
 	};
-
-	private ActionMode mMode;
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -245,12 +242,12 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 	private void setupSearchView() {
 		if (FragmentLayout.UI_DEBUG_PRINTS)
 			Log.d("NotesListFragment", "setup search view");
-//		if (mSearchView != null) {
-//			mSearchView.setIconifiedByDefault(true);
-//			mSearchView.setOnQueryTextListener(this);
-//			mSearchView.setSubmitButtonEnabled(false);
-//			mSearchView.setQueryHint(getString(R.string.search_hint));
-//		}
+		// if (mSearchView != null) {
+		// mSearchView.setIconifiedByDefault(true);
+		// mSearchView.setOnQueryTextListener(this);
+		// mSearchView.setSubmitButtonEnabled(false);
+		// mSearchView.setQueryHint(getString(R.string.search_hint));
+		// }
 	}
 
 	private int getPosOfId(long id) {
@@ -283,10 +280,10 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 				.getSystemService(Context.SEARCH_SERVICE);
 		mSearchItem = menu.findItem(R.id.menu_search);
 		mSearchItem.setActionView(R.layout.collapsible_edittext);
-//		mSearchView = (SearchView) mSearchItem.getActionView();
-//		if (mSearchView != null)
-//			mSearchView.setSearchableInfo(searchManager
-//					.getSearchableInfo(activity.getComponentName()));
+		// mSearchView = (SearchView) mSearchItem.getActionView();
+		// if (mSearchView != null)
+		// mSearchView.setSearchableInfo(searchManager
+		// .getSearchableInfo(activity.getComponentName()));
 		// searchView.setIconifiedByDefault(true); // Do iconify the widget;
 		// Don't
 		// // expand by default
@@ -370,13 +367,16 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 																// change the
 																// current value
 			values.put(NotePad.Notes.COLUMN_NAME_LOCALHIDDEN, 1);
-			activity.getContentResolver().update(
-					NotePad.Notes.CONTENT_URI,
-					values,
-					NotePad.Notes.COLUMN_NAME_GTASKS_STATUS + " IS ? AND "
-					+ NotePad.Notes.COLUMN_NAME_LIST + " IS ?",
-					new String[] { getText(R.string.gtask_status_completed)
-							.toString(), Long.toString(mCurListId) });
+			activity.getContentResolver()
+					.update(NotePad.Notes.CONTENT_URI,
+							values,
+							NotePad.Notes.COLUMN_NAME_GTASKS_STATUS
+									+ " IS ? AND "
+									+ NotePad.Notes.COLUMN_NAME_LIST + " IS ?",
+							new String[] {
+									getText(R.string.gtask_status_completed)
+											.toString(),
+									Long.toString(mCurListId) });
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -393,14 +393,6 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 		// Listen to changes to sort order
 		PreferenceManager.getDefaultSharedPreferences(activity)
 				.registerOnSharedPreferenceChangeListener(this);
-
-//		if (FragmentLayout.AT_LEAST_ICS) {
-//			// Share action provider
-//			modeCallback = new ModeCallbackICS(this);
-//		} else if (FragmentLayout.AT_LEAST_HC) {
-			// Share button
-			modeCallback = new ModeCallbackHC(this);
-//		}
 
 		if (savedInstanceState != null) {
 			if (FragmentLayout.UI_DEBUG_PRINTS)
@@ -460,7 +452,8 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-		showNote(position);
+		if (checkMode == CHECK_SINGLE)
+			showNote(position);
 	}
 
 	/**
@@ -745,7 +738,8 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 			lv.setChoiceMode(ListView.CHOICE_MODE_NONE);
 		}
 		lv.setLongClickable(true);
-		lv.setOnItemLongClickListener(this);
+		// Make sure actiivty implements this
+		lv.setOnItemLongClickListener((OnItemLongClickListener) activity);
 	}
 
 	public void setFutureSingleCheck() {
@@ -753,6 +747,7 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 		// can't do it now because it has to destroy itself etc...
 		if (checkMode == CHECK_MULTI) {
 			checkMode = CHECK_SINGLE_FUTURE;
+			setSingleCheck();
 
 			// Intent intent = new Intent(activity, FragmentLayout.class);
 
@@ -762,44 +757,6 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 			// SingleTop, so will not launch a new instance
 			// startActivity(intent);
 		}
-	}
-
-	public void setMultiCheck(int pos) {
-		if (FragmentLayout.UI_DEBUG_PRINTS)
-			Log.d(TAG, "setMutliCheck: " + pos);
-		// Do this on long press
-		checkMode = CHECK_MULTI;
-		// ListView lv = getListView();
-//		lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-//		lv.clearChoices();
-//		lv.setMultiChoiceModeListener(modeCallback);
-//		lv.setItemChecked(pos, true);
-		
-		// TODO fix
-		//mMode = startActionMode(modeCallback);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-			int position, long id) {
-		if (FragmentLayout.UI_DEBUG_PRINTS)
-			Log.d(TAG, "onLongClick");
-		if (checkMode == CHECK_SINGLE) {
-			// Disable long-clicking temporarliy
-			getListView().setLongClickable(false);
-			// get the position which was selected
-			if (FragmentLayout.UI_DEBUG_PRINTS)
-				Log.d("NotesListFragment", "onLongClick, selected item pos: "
-						+ position + ", id: " + id);
-			// change to multiselect mode and select that item
-			setMultiCheck(position);
-		} else {
-			// Should never happen
-			// Let modal listener handle it
-		}
-		return true;
 	}
 
 	public void setRefreshActionItemState(boolean refreshing) {
@@ -843,251 +800,7 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 		}
 	}
 
-	private final class ModeCallbackHC implements ActionMode.Callback,
-			DeleteActionListener {
-
-		protected NotesListFragment list;
-
-		protected HashMap<Long, String> textToShare;
-
-		protected OnModalDeleteListener onDeleteListener;
-
-		protected HashSet<Integer> notesToDelete;
-
-		//protected ActionMode mode;
-
-		public ModeCallbackHC(NotesListFragment list) {
-			textToShare = new HashMap<Long, String>();
-			notesToDelete = new HashSet<Integer>();
-			this.list = list;
-		}
-
-		public void setDeleteListener(OnModalDeleteListener onDeleteListener) {
-			this.onDeleteListener = onDeleteListener;
-
-		}
-
-		protected Intent createShareIntent(String text) {
-			Intent shareIntent = new Intent(Intent.ACTION_SEND);
-			shareIntent.setType("text/plain");
-			shareIntent.putExtra(Intent.EXTRA_TEXT, text);
-			shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-
-			return shareIntent;
-		}
-
-		protected void addTextToShare(long id) {
-			// Read note
-			Uri uri = NotesEditorFragment.getUriFrom(id);
-			Cursor cursor = openNote(uri);
-
-			if (cursor != null && !cursor.isClosed() && cursor.moveToFirst()) {
-				// Requery in case something changed while paused (such as the
-				// title)
-				// cursor.requery();
-
-				/*
-				 * Moves to the first record. Always call moveToFirst() before
-				 * accessing data in a Cursor for the first time. The semantics
-				 * of using a Cursor are that when it is created, its internal
-				 * index is pointing to a "place" immediately before the first
-				 * record.
-				 */
-				String note = "";
-
-				int colTitleIndex = cursor
-						.getColumnIndex(NotePad.Notes.COLUMN_NAME_TITLE);
-
-				if (colTitleIndex > -1)
-					note = cursor.getString(colTitleIndex) + "\n";
-
-				int colDueIndex = cursor
-						.getColumnIndex(NotePad.Notes.COLUMN_NAME_DUE_DATE);
-				String due = "";
-				if (colDueIndex > -1)
-					due = cursor.getString(colDueIndex);
-
-				if (due != null && !due.isEmpty()) {
-					Time date = new Time(Time.getCurrentTimezone());
-					date.parse3339(due);
-
-					note = note + "due date: " + date.format3339(true) + "\n";
-				}
-
-				int colNoteIndex = cursor
-						.getColumnIndex(NotePad.Notes.COLUMN_NAME_NOTE);
-
-				if (colNoteIndex > -1)
-					note = note + "\n" + cursor.getString(colNoteIndex);
-
-				// Put in hash
-				textToShare.put(id, note);
-			}
-		}
-
-		protected void delTextToShare(long id) {
-			textToShare.remove(id);
-		}
-
-		protected String buildTextToShare() {
-			String text = "";
-			ArrayList<String> notes = new ArrayList<String>(
-					textToShare.values());
-			if (!notes.isEmpty()) {
-				text = text + notes.remove(0);
-				while (!notes.isEmpty()) {
-					text = text + "\n\n" + notes.remove(0);
-				}
-			}
-			return text;
-		}
-
-		@Override
-		public boolean onCreateActionMode(ActionMode mode,
-				Menu menu) {
-			if (FragmentLayout.UI_DEBUG_PRINTS)
-				Log.d("MODALMAN", "onCreateActionMode mode: " + mode);
-			// Clear data!
-			this.textToShare.clear();
-			this.notesToDelete.clear();
-
-			MenuInflater inflater = activity.getSupportMenuInflater();
-			// if (FragmentLayout.lightTheme)
-			// inflater.inflate(R.menu.list_select_menu_light, menu);
-			// else
-			inflater.inflate(R.menu.list_select_menu, menu);
-			mode.setTitle("Select Items");
-
-			//this.mode = mode;
-
-			return true;
-		}
-
-		@Override
-		public void onDestroyActionMode(ActionMode mode) {
-			if (FragmentLayout.UI_DEBUG_PRINTS)
-				Log.d("modeCallback", "onDestroyActionMode: " + mode.toString()
-						+ ", " + mode.getMenu().toString());
-			list.setFutureSingleCheck();
-		}
-
-		// FIX
-		public void onItemCheckedStateChanged(ActionMode mode,
-				int position, long id, boolean checked) {
-			// Set the share intent with updated text
-			if (checked) {
-				addTextToShare(id);
-				this.notesToDelete.add(position);
-			} else {
-				delTextToShare(id);
-				this.notesToDelete.remove(position);
-			}
-			final int checkedCount = getListView().getCheckedItemCount();
-			switch (checkedCount) {
-			case 0:
-				mode.setSubtitle(null);
-				break;
-			case 1:
-				mode.setSubtitle("One item selected");
-				break;
-			default:
-				mode.setSubtitle("" + checkedCount + " items selected");
-				break;
-			}
-		}
-
-		private void shareNote(String text) {
-			Intent share = new Intent(Intent.ACTION_SEND);
-			share.setType("text/plain");
-			share.putExtra(Intent.EXTRA_TEXT, text);
-			share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-			startActivity(Intent.createChooser(share, "Share note"));
-		}
-
-		public Cursor openNote(Uri uri) {
-			/*
-			 * Using the URI passed in with the triggering Intent, gets the note
-			 * or notes in the provider. Note: This is being done on the UI
-			 * thread. It will block the thread until the query completes. In a
-			 * sample app, going against a simple provider based on a local
-			 * database, the block will be momentary, but in a real app you
-			 * should use android.content.AsyncQueryHandler or
-			 * android.os.AsyncTask.
-			 */
-			Cursor cursor = activity.managedQuery(uri, // The URI that gets
-														// multiple
-					// notes from
-					// the provider.
-					NotesEditorFragment.PROJECTION, // A projection that returns
-													// the note ID and
-					// note
-					// content for each note.
-					null, // No "where" clause selection criteria.
-					null, // No "where" clause selection values.
-					null // Use the default sort order (modification date,
-							// descending)
-					);
-			// Or Honeycomb will crash
-			activity.stopManagingCursor(cursor);
-			return cursor;
-		}
-
-		@Override
-		public void onDeleteAction() {
-			int num = notesToDelete.size();
-			if (onDeleteListener != null) {
-				for (int pos : notesToDelete) {
-					if (FragmentLayout.UI_DEBUG_PRINTS)
-						Log.d(TAG, "Deleting key: " + pos);
-				}
-				onDeleteListener.onModalDelete(notesToDelete);
-			}
-			Toast.makeText(activity, "Deleted " + num + " items",
-					Toast.LENGTH_SHORT).show();
-			mMode.finish();
-		}
-
-		@Override
-		public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-			return false;
-		}
-
-		@Override
-		public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-			if (FragmentLayout.UI_DEBUG_PRINTS)
-				Log.d("MODALMAN", "onActionItemClicked mode: " + mode);
-			switch (item.getItemId()) {
-			case R.id.modal_share:
-				shareNote(buildTextToShare());
-				mode.finish();
-				break;
-			case R.id.modal_copy:
-				ClipboardManager clipboard = (ClipboardManager) activity
-						.getSystemService(Context.CLIPBOARD_SERVICE);
-				// ICS style
-//				clipboard.setPrimaryClip(ClipData.newPlainText("Note",
-//						buildTextToShare()));
-				// Gingerbread style.
-				clipboard.setText(buildTextToShare());
-				Toast.makeText(
-						activity,
-						"Copied " + getListView().getCheckedItemCount()
-								+ " notes to clipboard", Toast.LENGTH_SHORT)
-						.show();
-				mode.finish();
-				break;
-			case R.id.modal_delete:
-				onDeleteAction();
-				break;
-			default:
-				// Toast.makeText(activity, "Clicked " + item.getTitle(),
-				// Toast.LENGTH_SHORT).show();
-				break;
-			}
-			return true;
-		}
-
-	}
+	
 
 	public void setOnDeleteListener(OnEditorDeleteListener fragmentLayout) {
 		this.onDeleteListener = fragmentLayout;
@@ -1299,5 +1012,9 @@ public class NotesListFragment extends ListFragment implements OnItemLongClickLi
 			if (FragmentLayout.UI_DEBUG_PRINTS)
 				Log.d(TAG, "Exception was caught: " + e.getMessage());
 		}
+	}
+
+	public void setCheckModeModal(boolean modal) {
+		checkMode = modal ? CHECK_MULTI : CHECK_SINGLE;
 	}
 }
