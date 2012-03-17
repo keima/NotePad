@@ -156,7 +156,7 @@ public class ModeCallbackABS implements ActionMode.Callback,
 		list.setFutureSingleCheck();
 	}
 
-	// FIX
+	// TODO FIX
 	public void onItemCheckedStateChanged(int position,
 			long id, boolean checked) {
 		// Set the share intent with updated text

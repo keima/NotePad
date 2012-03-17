@@ -122,8 +122,9 @@ public class FragmentLayout extends FragmentActivity implements
 				R.layout.sherlock_spinner_item, null,
 				new String[] { NotePad.Lists.COLUMN_NAME_TITLE },
 				new int[] { android.R.id.text1 }, 0);
-		
-		mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+		mSpinnerAdapter
+				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
 		// This will listen for navigation callbacks
 		actionBar.setListNavigationCallbacks(mSpinnerAdapter, this);
@@ -219,11 +220,11 @@ public class FragmentLayout extends FragmentActivity implements
 			String query = intent.getStringExtra(SearchManager.QUERY);
 			// list.onQueryTextChange(query);
 			// TODO fix
-//			if (list != null && list.mSearchView != null) {
-//				list.mSearchView.setQuery(query, false);
-//			} else if (list != null) {
-//				list.onQueryTextSubmit(query);
-//			}
+			// if (list != null && list.mSearchView != null) {
+			// list.mSearchView.setQuery(query, false);
+			// } else if (list != null) {
+			// list.onQueryTextSubmit(query);
+			// }
 		} else if (Intent.ACTION_EDIT.equals(intent.getAction())
 				|| Intent.ACTION_VIEW.equals(intent.getAction())) {
 			if (intent.getData() != null
@@ -414,9 +415,9 @@ public class FragmentLayout extends FragmentActivity implements
 
 				getSupportActionBar()
 						.setSelectedNavigationItem(
-								getPosOfId(Long.parseLong(listUri.getLastPathSegment())));
-				createdListId = Long.parseLong(listUri
-						.getLastPathSegment());
+								getPosOfId(Long.parseLong(listUri
+										.getLastPathSegment())));
+				createdListId = Long.parseLong(listUri.getLastPathSegment());
 
 			}
 		}
@@ -699,9 +700,9 @@ public class FragmentLayout extends FragmentActivity implements
 		public boolean onOptionsItemSelected(MenuItem item) {
 			switch (item.getItemId()) {
 			// TODO
-//			case android.R.id.home:
-//				finish();
-//				break;
+			// case android.R.id.home:
+			// finish();
+			// break;
 			case R.id.menu_delete:
 				onDeleteAction();
 				return true;
@@ -752,8 +753,7 @@ public class FragmentLayout extends FragmentActivity implements
 				Log.d(TAG, "onDeleteAction");
 			editorFragment.setSelfAction(); // Don't try to reload the deleted
 											// note
-			FragmentLayout.deleteNote(this,
-					editorFragment.getCurrentNoteId());
+			FragmentLayout.deleteNote(this, editorFragment.getCurrentNoteId());
 			setResult(SherlockActivity.RESULT_CANCELED);
 			finish();
 		}
@@ -786,8 +786,7 @@ public class FragmentLayout extends FragmentActivity implements
 	 * 
 	 * @param ids
 	 */
-	public static void deleteNotes(Context context,
-			Iterable<Long> ids) {
+	public static void deleteNotes(Context context, Iterable<Long> ids) {
 		ContentResolver resolver = context.getContentResolver();
 		boolean shouldMark = shouldMarkAsDeleted(context);
 		for (long id : ids) {
@@ -832,7 +831,7 @@ public class FragmentLayout extends FragmentActivity implements
 		if (ids.contains(curId)) {
 			if (UI_DEBUG_PRINTS)
 				Log.d("FragmentLayout",
-					"id was contained in multidelete, setting no save first");
+						"id was contained in multidelete, setting no save first");
 			NotesEditorFragment editor = (NotesEditorFragment) getSupportFragmentManager()
 					.findFragmentById(R.id.editor_container);
 			if (editor != null) {
@@ -924,7 +923,8 @@ public class FragmentLayout extends FragmentActivity implements
 			prevNumberOfLists = mSpinnerAdapter.getCount();
 			// Now select it.
 			if (createdListId > -1) {
-				getSupportActionBar().setSelectedNavigationItem(getPosOfId(createdListId));
+				getSupportActionBar().setSelectedNavigationItem(
+						getPosOfId(createdListId));
 
 				createdListId = -1;
 			}
@@ -955,28 +955,25 @@ public class FragmentLayout extends FragmentActivity implements
 	public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
 			int position, long id) {
 		if (list != null) {
-			
+
 			if (list.checkMode == list.CHECK_SINGLE) {
 				ListView lv = list.getListView();
 				list.setCheckModeModal(true);
 				lv.setOnItemClickListener(modeCallback);
 				lv.setOnItemLongClickListener(modeCallback);
-				// Disable long-clicking temporarliy
-				//lv.setLongClickable(false);
 				// get the position which was selected
 				if (FragmentLayout.UI_DEBUG_PRINTS)
-					Log.d("NotesListFragment", "onLongClick, selected item pos: "
-							+ position + ", id: " + id);
+					Log.d("NotesListFragment",
+							"onLongClick, selected item pos: " + position
+									+ ", id: " + id);
 				// change to multiselect mode and select that item
 				if (modeCallback != null) {
-					//checkMode = CHECK_MULTI;
 					lv.clearChoices();
 					lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 					mMode = startActionMode(modeCallback);
 					modeCallback.setActionMode(mMode);
-					lv.setItemChecked(position, true);
-					modeCallback.checkedItemCount = 1;
-					
+					modeCallback.onItemLongClick(arg0, arg1, position, id);
+
 					return true;
 				}
 			}
