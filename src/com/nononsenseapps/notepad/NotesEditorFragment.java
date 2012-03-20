@@ -20,7 +20,6 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 import android.app.Activity;
-import android.app.DialogFragment;
 import android.app.LoaderManager;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.Fragment;
@@ -598,7 +597,9 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 			// else
 			inflater.inflate(R.menu.editor_options_menu, menu);
 
-			if (FragmentLayout.AT_LEAST_ICS) {
+			/* COmmented out until the bug in the platform is fixed
+			if (getResources()
+					.getBoolean(R.bool.atLeastIceCreamSandwich)) {
 				// Set default intent on ShareProvider and set shareListener to
 				// this so
 				// we can update with current note
@@ -618,6 +619,7 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 				// say when the user has selected an image.
 				setActionShareIntent();
 			}
+			*/
 
 			// Append to the
 			// menu items for any other activities that can do stuff with it
@@ -860,11 +862,6 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 				if (mOriginalTitle == null) {
 					mOriginalTitle = title;
 				}
-
-				// Request focus, will not open keyboard
-				if (FragmentLayout.LANDSCAPE_MODE) {
-					activity.findViewById(R.id.noteBox).requestFocus();
-				}
 			}
 
 			/*
@@ -999,7 +996,8 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 	}
 
 	private void setActionShareIntent() {
-		if (FragmentLayout.AT_LEAST_ICS && shareActionProvider != null) {
+		if (getResources()
+				.getBoolean(R.bool.atLeastIceCreamSandwich) && shareActionProvider != null) {
 			Intent share = new Intent(Intent.ACTION_SEND);
 			share.setType("text/plain");
 			share.putExtra(Intent.EXTRA_TEXT, makeShareText());
@@ -1166,6 +1164,8 @@ public class NotesEditorFragment extends Fragment implements TextWatcher,
 				break;
 			}
 		}
+		// Invalidate the menu so it redraws and hides/shows the icons if applicable
+		getActivity().invalidateOptionsMenu();
 	}
 
 }
