@@ -115,14 +115,9 @@ public class GoogleAPITalker {
 	public static String AuthUrlEnd() {
 		return "key=" + ApiKey();
 	}
-<<<<<<< HEAD
-	//public static final String AUTH_URL_END = "key=" + APIKEY;
-	
-=======
 
 	// public static final String AUTH_URL_END = "key=" + APIKEY;
 
->>>>>>> master
 	public static final String BASE_URL = "https://www.googleapis.com/tasks/v1/users/@me/lists";
 
 	public static String AllLists() {
