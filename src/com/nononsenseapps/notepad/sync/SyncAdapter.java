@@ -19,7 +19,6 @@ package com.nononsenseapps.notepad.sync;
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 
-import com.nononsenseapps.notepad.prefs.MainPrefs;
 import com.nononsenseapps.notepad.prefs.SyncPrefs;
 import com.nononsenseapps.notepad.sync.googleapi.GoogleAPITalker;
 import com.nononsenseapps.notepad.sync.googleapi.GoogleDBTalker;
@@ -31,6 +30,7 @@ import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentProviderResult;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.OperationApplicationException;
@@ -89,6 +89,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	public static final String SYNC_STARTED = "com.nononsenseapps.notepad.sync.SYNC_STARTED";
 	public static final String SYNC_FINISHED = "com.nononsenseapps.notepad.sync.SYNC_FINISHED";
 	private static final String PREFS_LAST_SYNC_ETAG = "lastserveretag";
+	private static final String PREFS_LAST_SYNC_DATE = "lastsyncdate";
 
 	private final AccountManager accountManager;
 
@@ -111,8 +112,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		// Only sync if it has been enabled by the user, and account is selected
 		// Issue on reinstall where account approval is remembered by system
 		if (settings.getBoolean(SyncPrefs.KEY_SYNC_ENABLE, false)
-				&& !settings.getString(SyncPrefs.KEY_ACCOUNT, "")
-						.isEmpty()
+				&& !settings.getString(SyncPrefs.KEY_ACCOUNT, "").isEmpty()
 				&& account.name.equals(settings.getString(
 						SyncPrefs.KEY_ACCOUNT, ""))) {
 
@@ -138,8 +138,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 						// save
 						// that for now.
 						// This is the latest time we synced
-						String lastUpdated = dbTalker
-								.getLastUpdated(account.name);
+						//String lastUpdated = dbTalker.getLastUpdated(account.name);
+						String lastUpdate = settings.getString(PREFS_LAST_SYNC_DATE, null);
 						// Get the latest hash value we saw on the server
 						String localEtag = settings.getString(
 								PREFS_LAST_SYNC_ETAG, "");
@@ -163,9 +163,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
 						// Get the current hash value on the server and all
 						// remote
-						// lists
-						String serverEtag = apiTalker.getModifiedLists(
-								localEtag, allLocalLists, listsToSaveToDB);
+						// lists if upload is not true
+
+						String serverEtag;
+						if (extras.getBoolean(
+								ContentResolver.SYNC_EXTRAS_UPLOAD, false)) {
+							serverEtag = localEtag;
+						} else {
+							serverEtag = apiTalker.getModifiedLists(localEtag,
+									allLocalLists, listsToSaveToDB);
+						}
 
 						// IF the tags match, then nothing has changed on
 						// server.
@@ -186,7 +193,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 														+ list.id);
 									tasksInListToSaveToDB.put(list, list
 											.downloadModifiedTasks(apiTalker,
-													allTasks, lastUpdated));
+													allTasks, lastUpdate));
 								}
 							}
 						}
@@ -291,8 +298,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 									if (tasksInListToSaveToDB.get(list) == null)
 										tasksInListToSaveToDB.put(list,
 												new ArrayList<GoogleTask>());
-									tasksInListToSaveToDB.get(list).add(
-											result);
+									tasksInListToSaveToDB.get(list).add(result);
 								}
 							}
 						}
@@ -300,18 +306,24 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 						// Finally, get the updated etag from the server and
 						// save.
 						// Only worth doing if we actually uploaded anything
+						// Also, only do this if we are doing a full sync
 						String currentEtag = serverEtag;
-						if (uploadedStuff) {
+						if (uploadedStuff
+								&& !extras.getBoolean(
+										ContentResolver.SYNC_EXTRAS_UPLOAD,
+										false)) {
 							currentEtag = apiTalker.getEtag();
+							lastUpdate = dbTalker.getLastUpdated(account.name);
 						}
 
 						settings.edit()
 								.putString(PREFS_LAST_SYNC_ETAG, currentEtag)
+								.putString(PREFS_LAST_SYNC_DATE, lastUpdate)
 								.commit();
 
 						// Now, set sorting values.
-						// TODO
-						for (GoogleTaskList list : tasksInListToSaveToDB.keySet()) {
+						for (GoogleTaskList list : tasksInListToSaveToDB
+								.keySet()) {
 							if (SYNC_DEBUG_PRINTS)
 								Log.d(TAG, "Setting position values in: "
 										+ list.id);
@@ -322,7 +334,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 									Log.d(TAG,
 											"Setting position values for #tasks: "
 													+ tasks.size());
-								ArrayList<GoogleTask> allListTasks = allTasksInList.get(list.dbId);
+								ArrayList<GoogleTask> allListTasks = allTasksInList
+										.get(list.dbId);
 								list.setSortingValues(tasks, allListTasks);
 							}
 						}
@@ -333,8 +346,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 						dbTalker.SaveToDatabase(listsToSaveToDB,
 								tasksInListToSaveToDB);
 						// Commit it
-						 ContentProviderResult[] result = dbTalker.apply();
-						 Log.d(TAG, "Batched items: " + result.length);
+						ContentProviderResult[] result = dbTalker.apply();
+						Log.d(TAG, "Batched items: " + result.length);
 
 						if (SYNC_DEBUG_PRINTS)
 							Log.d(TAG, "Sync Complete!");

@@ -17,6 +17,7 @@
 package com.nononsenseapps.notepad;
 
 import com.nononsenseapps.notepad.NotePad;
+import com.nononsenseapps.notepad.prefs.SyncPrefs;
 import com.nononsenseapps.notepad.sync.SyncAdapter;
 import com.nononsenseapps.notepad_donate.R;
 import com.nononsenseapps.notepad_donate.widget.ListWidgetProvider;
@@ -43,6 +44,7 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
 import android.util.Log;
@@ -63,6 +65,19 @@ import java.util.Map.Entry;
  */
 public class NotePadProvider extends ContentProvider implements
 		PipeDataWriter<Cursor> {
+	
+	public static boolean SyncAuto(Context context) {
+		String setting = PreferenceManager
+				.getDefaultSharedPreferences(context).getString(
+						SyncPrefs.KEY_SYNC_FREQ, "0");
+		int syncAuto = Integer.parseInt(setting);
+		
+		boolean syncEnabled = PreferenceManager
+				.getDefaultSharedPreferences(context).getBoolean(
+						SyncPrefs.KEY_SYNC_ENABLE, false);
+		
+		return syncEnabled && (syncAuto > 0);
+	}
 	// Used for debugging and logging
 	private static final String TAG = "NotePadProvider";
 
@@ -370,7 +385,7 @@ public class NotePadProvider extends ContentProvider implements
 			// calls the super constructor, requesting the default cursor
 			// factory.
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
-			if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+			if (SyncAdapter.SYNC_DEBUG_PRINTS)
 				Log.d("DataBaseHelper", "Constructor");
 			this.context = context;
 		}
@@ -382,7 +397,7 @@ public class NotePadProvider extends ContentProvider implements
 		 */
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+			if (SyncAdapter.SYNC_DEBUG_PRINTS)
 				Log.d("DataBaseHelper", "onCreate");
 			createNotesTable(db);
 			createListsTable(db);
@@ -645,7 +660,7 @@ public class NotePadProvider extends ContentProvider implements
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection,
 			String[] selectionArgs, String sortOrder) {
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "query");
 
 		// Constructs a new query builder and sets its table name
@@ -663,7 +678,8 @@ public class NotePadProvider extends ContentProvider implements
 			// Add a selection criteria, but then fall through for normal note
 			// handling.
 			qb.appendWhere(NotePad.Notes.COLUMN_NAME_HIDDEN + " IS NOT 1 AND ");
-			qb.appendWhere(NotePad.Notes.COLUMN_NAME_LOCALHIDDEN + " IS NOT 1 AND ");
+			qb.appendWhere(NotePad.Notes.COLUMN_NAME_LOCALHIDDEN
+					+ " IS NOT 1 AND ");
 			qb.appendWhere(NotePad.Notes.COLUMN_NAME_DELETED + " IS NOT 1");
 			qb.setTables(NotePad.Notes.TABLE_NAME);
 			qb.setProjectionMap(sFastVisibleNotesProjectionMap);
@@ -1043,7 +1059,7 @@ public class NotePadProvider extends ContentProvider implements
 	 */
 	@Override
 	public Uri insert(Uri uri, ContentValues initialValues) {
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "insert");
 
 		// Validates the incoming URI. Only the full provider URI is allowed for
@@ -1065,7 +1081,7 @@ public class NotePadProvider extends ContentProvider implements
 	}
 
 	private Uri insertNote(Uri uri, ContentValues initialValues) {
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "insertNote");
 		// A map to hold the new record's values.
 		ContentValues values;
@@ -1145,7 +1161,7 @@ public class NotePadProvider extends ContentProvider implements
 
 		if (values.containsKey(NotePad.Notes.COLUMN_NAME_LIST) == false
 				|| values.getAsLong(NotePad.Notes.COLUMN_NAME_LIST) < 0) {
-			if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+			if (SyncAdapter.SYNC_DEBUG_PRINTS)
 				Log.d(TAG, "Forgot to include note in a list");
 			throw new SQLException("A note must always belong to a list!");
 		}
@@ -1188,7 +1204,7 @@ public class NotePadProvider extends ContentProvider implements
 	}
 
 	private Uri insertList(Uri uri, ContentValues initialValues) {
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "insertList");
 		// A map to hold the new record's values.
 		ContentValues values;
@@ -1266,7 +1282,7 @@ public class NotePadProvider extends ContentProvider implements
 	}
 
 	private Uri insertGTask(Uri uri, ContentValues initialValues) {
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "insertGTask");
 		// A map to hold the new record's values.
 		ContentValues values;
@@ -1329,7 +1345,7 @@ public class NotePadProvider extends ContentProvider implements
 	}
 
 	private Uri insertGTaskList(Uri uri, ContentValues initialValues) {
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "insertGTaskList");
 		// A map to hold the new record's values.
 		ContentValues values;
@@ -1446,7 +1462,7 @@ public class NotePadProvider extends ContentProvider implements
 	 */
 	private static int deleteListFromDb(SQLiteDatabase db, String id,
 			String where, String[] whereArgs) {
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "Deleting list from DB: " + id);
 
 		String finalWhere = BaseColumns._ID + " = " + id;
@@ -1508,7 +1524,7 @@ public class NotePadProvider extends ContentProvider implements
 	 */
 	private static int deleteNoteFromDb(SQLiteDatabase db, String id,
 			String where, String[] whereArgs) {
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "Deleting note from DB: " + id);
 
 		String finalWhere = BaseColumns._ID + " = " + id;
@@ -1556,7 +1572,7 @@ public class NotePadProvider extends ContentProvider implements
 	@Override
 	public int delete(Uri uri, String where, String[] whereArgs) {
 
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "delete");
 		// Opens the database object in "write" mode.
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -1719,7 +1735,7 @@ public class NotePadProvider extends ContentProvider implements
 	@Override
 	public int update(Uri uri, ContentValues values, String where,
 			String[] whereArgs) {
-		if (FragmentLayout.UI_DEBUG_PRINTS || SyncAdapter.SYNC_DEBUG_PRINTS)
+		if (SyncAdapter.SYNC_DEBUG_PRINTS)
 			Log.d(TAG, "update");
 
 		// Opens the database object in "write" mode.
