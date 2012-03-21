@@ -98,36 +98,45 @@ public class GoogleAPITalker {
 
 	}
 
-	public static final String[] APIKEYS = {
-			"AIzaSyBCQyr-OSPQsMwU2tyCIKZG86Wb3WM1upw"};
-	
+	public static final String[] APIKEYS = { "AIzaSyBCQyr-OSPQsMwU2tyCIKZG86Wb3WM1upw" };
+
 	public static Random rand = new Random();
-	
+
 	public static String ApiKey() {
 		if (null == rand)
 			rand = new Random();
-		
+
 		return APIKEYS[rand.nextInt(APIKEYS.length)];
 	}
 
-	//public static final String APIKEY = "AIzaSyBCQyr-OSPQsMwU2tyCIKZG86Wb3WM1upw";
-	
+	// public static final String APIKEY =
+	// "AIzaSyBCQyr-OSPQsMwU2tyCIKZG86Wb3WM1upw";
+
 	public static String AuthUrlEnd() {
 		return "key=" + ApiKey();
 	}
+<<<<<<< HEAD
 	//public static final String AUTH_URL_END = "key=" + APIKEY;
 	
+=======
+
+	// public static final String AUTH_URL_END = "key=" + APIKEY;
+
+>>>>>>> master
 	public static final String BASE_URL = "https://www.googleapis.com/tasks/v1/users/@me/lists";
-	
+
 	public static String AllLists() {
 		return BASE_URL + "?" + AuthUrlEnd();
 	}
-	//public static final String ALL_LISTS = BASE_URL + "?" + AUTH_URL_END;
-	
+
+	// public static final String ALL_LISTS = BASE_URL + "?" + AUTH_URL_END;
+
 	public static String AllListsJustEtag() {
-		return BASE_URL + "?fields=etag&"+ AuthUrlEnd();
+		return BASE_URL + "?fields=etag&" + AuthUrlEnd();
 	}
-	//public static final String ALL_LISTS_JUST_ETAG = BASE_URL + "?fields=etag&"+ AUTH_URL_END;
+
+	// public static final String ALL_LISTS_JUST_ETAG = BASE_URL +
+	// "?fields=etag&"+ AUTH_URL_END;
 
 	public static String ListURL(String id) {
 		return BASE_URL + "/" + id + "?" + AuthUrlEnd();
