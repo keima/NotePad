@@ -25,6 +25,8 @@
     <string name="menu_revert">Änderungen rückgängig</string>
     <string name="menu_copy">Notiz kopieren</string>
     <string name="menu_cancel">Abbrechen</string>
+    <string name="menu_setcompleted">Set done</string>
+    <string name="menu_setuncompleted">Set not done</string>
     <string name="menu_deletelist">Liste löschen</string>
     <string name="menu_sync">Aktualisieren</string>
     <string name="menu_share">Teilen</string>
@@ -104,6 +106,8 @@
     <string name="settings_list">Liste</string>
     <string name="settings_list_summary"></string>
     <string name="automatic">Automatisch</string>
+    <string name="preferences_week_start_day_title" msgid="4619489296444901622">"Woche beginnt am"</string>
+    <string name="preferences_week_start_day_dialog" msgid="5181634128884089113">"Woche beginnt am"</string>
 
     <string name="lock_note">Notiz sperren</string>
     <string name="unlock_note">Notiz entsperren</string>
@@ -122,5 +126,9 @@
     <string name="clear_password">Passwort löschen</string>
     <string name="password_info">Das Einstellen eines Passwortes hat zur Folge, dass man zum Anzeigen der gesperrten Notizen das Passwort eingeben muss. Es wird nur der Inhalt der Notiz geschützt; Titel und Datum sind weiterhin sichtbar. Die Notiz wird nicht Verschlüsselt und kann weiterhin in Google Mail / Kalender betrachtet werden. Sollten Sie ihr Passwort vergessen so synchronisieren sie bitte mit Google und installieren sie anschließend die App neu.</string>
     <string name="about">Über</string>
+    
+    <!-- Untranslated yet -->
+    <string name="sync_failed">Sync failed</string>
+    <string name="sync_login_failed">Login failed, could not connect to Google Tasks</string>
 
 </resources>

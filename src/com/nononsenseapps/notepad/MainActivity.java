@@ -28,6 +28,7 @@ import com.nononsenseapps.notepad.prefs.SyncPrefs;
 import com.nononsenseapps.notepad_donate.R;
 import com.nononsenseapps.ui.ExtrasCursorAdapter;
 
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
 import android.app.Dialog;
@@ -224,6 +225,7 @@ public class MainActivity extends DualLayoutActivity implements
 	 * If the user has a search button, ideally he should be able to use it.
 	 * Expand the search provider in that case
 	 */
+	@TargetApi(14)
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		switch (keyCode) {
@@ -747,6 +749,7 @@ public class MainActivity extends DualLayoutActivity implements
 		}
 	}
 
+	@TargetApi(14)
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {

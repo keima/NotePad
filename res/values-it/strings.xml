@@ -106,6 +106,8 @@
     <string name="settings_list">Lista</string>
     <string name="settings_list_summary"></string>
     <string name="automatic">Automaticamente</string>
+    <string name="preferences_week_start_day_title" msgid="4619489296444901622">"La settimana inizia da"</string>
+    <string name="preferences_week_start_day_dialog" msgid="5181634128884089113">"La settimana inizia da"</string>
 
     <string name="lock_note">Blocca nota</string>
     <string name="unlock_note">Sblocca nota</string>
@@ -128,5 +130,9 @@
 		di Google. Nel caso ti dimenticassi la password, sincronizza con il tuo account Google
 		e reinstalla l\'applicazione.</string>
 	<string name="about">About</string>
+	
+	 <!-- Untranslated yet -->
+    <string name="sync_failed">Sync failed</string>
+    <string name="sync_login_failed">Login failed, could not connect to Google Tasks</string>
 	
 </resources>

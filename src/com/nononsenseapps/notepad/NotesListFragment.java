@@ -52,6 +52,7 @@ import android.provider.BaseColumns;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.annotation.TargetApi;
 import android.app.LoaderManager;
 import android.app.SearchManager;
 import android.view.Menu;
@@ -141,14 +142,33 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 						setRefreshActionItemState(true);
 					}
 				});
-			} else {
+			} else if (intent.getAction().equals(SyncAdapter.SYNC_FINISHED)) {
 				activity.runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
 						setRefreshActionItemState(false);
 					}
 				});
+				tellUser(context, intent.getExtras().getInt(SyncAdapter.SYNC_RESULT));
 			}
+		}
+
+		private void tellUser(Context context, int result) {
+			int text = R.string.sync_failed;
+			switch (result) {
+			case SyncAdapter.ERROR:
+				text = R.string.sync_failed;
+				break;
+			case SyncAdapter.LOGIN_FAIL:
+				text = R.string.sync_login_failed;
+				break;
+			case SyncAdapter.SUCCESS:
+			default:
+				return;
+			}
+
+			Toast toast = Toast.makeText(context, text, Toast.LENGTH_SHORT);
+			toast.show();
 		}
 	};
 
@@ -1140,6 +1160,7 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 
 	}
 
+	@TargetApi(14)
 	private class ModeCallbackICS extends ModeCallbackHC {
 
 		protected ShareActionProvider actionProvider;

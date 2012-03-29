@@ -120,6 +120,8 @@
     <string name="settings_list">Seznam</string>
     <string name="settings_list_summary"></string>
     <string name="automatic">Automaticky</string>
+    <string name="preferences_week_start_day_title" msgid="4619489296444901622">"Začátek týdne"</string>
+    <string name="preferences_week_start_day_dialog" msgid="5181634128884089113">"Začátek týdne"</string>
     
     <!-- Un-translated yet -->
     <string name="lock_note">Lock note</string>
@@ -143,4 +145,7 @@
         be viewed in Google mail/calendar. If you forget your password, sync with Google and
         then reinstall the app.</string>
     <string name="about">About</string>
+    
+    <string name="sync_failed">Sync failed</string>
+    <string name="sync_login_failed">Login failed, could not connect to Google Tasks</string>
 </resources>

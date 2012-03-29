@@ -15,7 +15,7 @@
      limitations under the License.
 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" >
 
     <string name="app_name">Notes</string>
     <string name="title_create">New note</string>
@@ -107,6 +107,10 @@
     <string name="settings_list_summary"></string>
     <string name="automatic">Automatically</string>
 
+    <string name="preferences_week_start_day_dialog">Week starts on</string>
+    <string name="preferences_week_start_day_title">Week starts on</string>
+    <string name="preferences_week_start_day_default" tools:ignore="MissingTranslation" >-1</string>
+
     <!-- Un-translated yet -->
     <string name="lock_note">Lock note</string>
     <string name="unlock_note">Unlock note</string>
@@ -129,9 +133,12 @@
         be viewed in Google mail/calendar. If you forget your password, sync with Google and
         then reinstall the app.</string>
     <string name="about">About</string>
+    
+    <string name="sync_failed">Sync failed</string>
+    <string name="sync_login_failed">Login failed, could not connect to Google Tasks</string>
 
     <!-- These should probably not be translated -->
-    <string name="about_text">Thank you for downloading my app! I try my best to make this app awesome in every way but there will always be bugs and things can always get more awesome!\n
+    <string tools:ignore="MissingTranslation" name="about_text">Thank you for downloading my app! I try my best to make this app awesome in every way but there will always be bugs and things can always get more awesome!\n
 
 \nIf you\'ve found a bug, a translation being wrong or simply have an idea on how to make this app more awesome then I want to hear about it!
 \nSend me a mail: jonas@nononsenseapps.com

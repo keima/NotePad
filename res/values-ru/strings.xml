@@ -15,6 +15,7 @@
 -->
 
 <resources>
+    <string name="app_name">Notes</string>
 
     <string name="title_create">Новая запись</string>
     <string name="title_edit">Редактировать: %1$s</string>
@@ -32,7 +33,7 @@
     <string name="menu_preferences">Настройки</string>
     <string name="menu_renamelist">Переименовать список</string>
     <string name="menu_createlist">Создать список</string>
-    <string name="menu_clearcompleted">Очистка завершена</string>
+    <string name="menu_clearcompleted">Очистить завершённые</string>
     <string name="menu_setdefaultlist">Задать как список по умолчанию</string>
     
     <string name="delete_list_warning">Вы уверены, что хотите удалить этот список? Этот список будет удалён навсегда.</string>
@@ -105,11 +106,23 @@
     <string name="permission_read_desc">Разрешить приложению читать записи и связанные списки.</string>
     <string name="permission_write_label">изменять записи и списки</string>
     <string name="permission_write_desc">Разрешить приложению добавлять, изменять и удалять записи и списки.</string>
+    
+    <string name="monospace">Monospace</string>
+    <string name="sans">Sans</string>
+    <string name="serif">Serif</string>
+    <string name="settings_header_list_summary"></string>
+    <string name="settings_header_appearance">@string/settings_cat_appearance</string>
+    <string name="settings_header_appearance_summary"></string>
+    <string name="settings_header_sync">@string/settings_cat_syncing</string>
+    <string name="settings_header_sync_summary"></string>
+    <string name="settings_list_summary"></string>
 
     <string name="settings_header_list">Настройки списков</string>
     <string name="settings_list_dialog">Выберите список</string>
     <string name="settings_list">Список</string>
     <string name="automatic">Автоматически</string>
+    <string name="preferences_week_start_day_title" msgid="4619489296444901622">"Начало недели:"</string>
+    <string name="preferences_week_start_day_dialog" msgid="5181634128884089113">"Начало недели:"</string>
 
     <string name="lock_note">Заблокировать запись</string>
     <string name="unlock_note">Разблокировать запись</string>
@@ -132,5 +145,9 @@
         Это не шифрует заметку, она попрежнему остаётся доступна в веб-приложениях Google.
         Если вы забыли свой пароль, синхронизируйтесь и переустановите приложение.</string>
     <string name="about">Помощь</string>
+    
+     <!-- Untranslated yet -->
+    <string name="sync_failed">Sync failed</string>
+    <string name="sync_login_failed">Login failed, could not connect to Google Tasks</string>
 
 </resources>
