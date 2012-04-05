@@ -28,6 +28,8 @@ import com.nononsenseapps.notepad.prefs.SyncPrefs;
 import com.nononsenseapps.notepad_donate.R;
 import com.nononsenseapps.ui.ExtrasCursorAdapter;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.ActionBar.OnNavigationListener;
@@ -316,15 +318,20 @@ public class MainActivity extends DualLayoutActivity implements
 				createList(title);
 			}
 		} else if (intent.getType() != null
-				&& intent.getType().equals(NotePad.Notes.CONTENT_TYPE)
+				&& (intent.getType().equals(NotePad.Notes.CONTENT_TYPE) || intent.getType().startsWith("text/"))
 				|| intent.getData() != null
 				&& intent.getData().equals(NotePad.Notes.CONTENT_VISIBLE_URI)) {
 			Log.d("FragmentLayout", "INSERT NOTE");
 			// Get list to create note in first
 			long listId = getAList(intent);
+			String text = "";
+			if (intent.getExtras() != null) {
+				text = intent.getExtras().getCharSequence(Intent.EXTRA_TEXT, "").toString();
+			}
+			
 			if (listId > -1) {
 				Uri noteUri = MainActivity.createNote(getContentResolver(),
-						listId);
+						listId, text);
 
 				if (noteUri != null) {
 					long newNoteIdToOpen = NotesListFragment
@@ -441,6 +448,8 @@ public class MainActivity extends DualLayoutActivity implements
 				|| Intent.ACTION_VIEW.equals(intent.getAction())) {
 			handleEditIntent(intent);
 		} else if (Intent.ACTION_INSERT.equals(intent.getAction())) {
+			handleInsertIntent(intent);
+		} else if (Intent.ACTION_SEND.equals(intent.getAction())) {
 			handleInsertIntent(intent);
 		}
 	}
@@ -586,7 +595,7 @@ public class MainActivity extends DualLayoutActivity implements
 				createNote(
 						getContentResolver(),
 						Long.parseLong(listUri.getPathSegments().get(
-								NotePad.Lists.ID_PATH_POSITION)));
+								NotePad.Lists.ID_PATH_POSITION)), "");
 				// Select list
 				listIdToSelect = Long.parseLong(listUri.getLastPathSegment());
 			}
@@ -849,11 +858,12 @@ public class MainActivity extends DualLayoutActivity implements
 	 * @param listId
 	 * @return
 	 */
-	public static Uri createNote(ContentResolver resolver, long listId) {
+	public static Uri createNote(ContentResolver resolver, long listId, String noteText) {
 		if (listId > -1) {
 			ContentValues values = new ContentValues();
 			// Must always include list
 			values.put(NotePad.Notes.COLUMN_NAME_LIST, listId);
+			values.put(NotePad.Notes.COLUMN_NAME_NOTE, noteText);
 			try {
 				return resolver.insert(NotePad.Notes.CONTENT_URI, values);
 			} catch (SQLException e) {
@@ -896,7 +906,6 @@ public class MainActivity extends DualLayoutActivity implements
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.d(TAG, "onDestroy");
 	}
 
 	@Override

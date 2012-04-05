@@ -197,7 +197,9 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 			mCurId = -1;
 		}
 
-		// Sync any possible changes from server on start here. NOT in onresumse
+		// Sync any possible changes from server on start here. NOT in onresume
+		// TODO activate this once changes in the editor is not overwritten
+		/*
 		String accountName = PreferenceManager.getDefaultSharedPreferences(
 				activity).getString(SyncPrefs.KEY_ACCOUNT, "");
 
@@ -217,7 +219,7 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 				ContentResolver
 						.requestSync(account, NotePad.AUTHORITY, options);
 			}
-		}
+		}*/
 	}
 
 	public void handleNoteIntent(Intent intent) {
@@ -280,6 +282,9 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 	}
 
 	private int getPosOfId(long id) {
+		if (mAdapter == null)
+			return -1;
+		
 		int length = mAdapter.getCount();
 		int position;
 		for (position = 0; position < length; position++) {
@@ -1052,6 +1057,7 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 				ClipboardManager clipboard = (ClipboardManager) activity
 						.getSystemService(Context.CLIPBOARD_SERVICE);
 				// ICS style
+				// TODO remove hardcoded strings
 				clipboard.setPrimaryClip(ClipData.newPlainText("Note",
 						buildTextToShare()));
 				Toast.makeText(
@@ -1097,6 +1103,7 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 				mode.setSubtitle(null);
 				break;
 			case 1:
+				// TODO remove hard coded strings
 				mode.setSubtitle("One item selected");
 				break;
 			default:
