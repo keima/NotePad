@@ -71,6 +71,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.ShareActionProvider;
@@ -149,7 +150,8 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 						setRefreshActionItemState(false);
 					}
 				});
-				tellUser(context, intent.getExtras().getInt(SyncAdapter.SYNC_RESULT));
+				tellUser(context,
+						intent.getExtras().getInt(SyncAdapter.SYNC_RESULT));
 			}
 		}
 
@@ -200,26 +202,21 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 		// Sync any possible changes from server on start here. NOT in onresume
 		// TODO activate this once changes in the editor is not overwritten
 		/*
-		String accountName = PreferenceManager.getDefaultSharedPreferences(
-				activity).getString(SyncPrefs.KEY_ACCOUNT, "");
-
-		if (accountName != null && !accountName.equals("")
-				&& NotePadProvider.SyncAuto(activity)) {
-			Account account = SyncPrefs.getAccount(
-					AccountManager.get(activity), accountName);
-			// Don't start a new sync if one is already going
-			if (!ContentResolver.isSyncActive(account, NotePad.AUTHORITY)) {
-				Bundle options = new Bundle();
-				// This will force a sync regardless of what the setting is
-				// in
-				// accounts manager. Only use it here where the user has
-				// manually
-				// desired a sync to happen NOW.
-				options.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-				ContentResolver
-						.requestSync(account, NotePad.AUTHORITY, options);
-			}
-		}*/
+		 * String accountName = PreferenceManager.getDefaultSharedPreferences(
+		 * activity).getString(SyncPrefs.KEY_ACCOUNT, "");
+		 * 
+		 * if (accountName != null && !accountName.equals("") &&
+		 * NotePadProvider.SyncAuto(activity)) { Account account =
+		 * SyncPrefs.getAccount( AccountManager.get(activity), accountName); //
+		 * Don't start a new sync if one is already going if
+		 * (!ContentResolver.isSyncActive(account, NotePad.AUTHORITY)) { Bundle
+		 * options = new Bundle(); // This will force a sync regardless of what
+		 * the setting is // in // accounts manager. Only use it here where the
+		 * user has // manually // desired a sync to happen NOW.
+		 * options.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+		 * ContentResolver .requestSync(account, NotePad.AUTHORITY, options); }
+		 * }
+		 */
 	}
 
 	public void handleNoteIntent(Intent intent) {
@@ -284,7 +281,7 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 	private int getPosOfId(long id) {
 		if (mAdapter == null)
 			return -1;
-		
+
 		int length = mAdapter.getCount();
 		int position;
 		for (position = 0; position < length; position++) {
@@ -727,6 +724,29 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 						|| columnIndex == cursor
 								.getColumnIndex(NotePad.Notes.COLUMN_NAME_TITLE)) {
 					TextView tv = (TextView) view;
+
+					// Hide empty note
+					if (columnIndex == cursor
+							.getColumnIndex(NotePad.Notes.COLUMN_NAME_NOTE)) {
+
+						LinearLayout.LayoutParams layoutParams;
+						String noteText = cursor.getString(cursor
+								.getColumnIndex(NotePad.Notes.COLUMN_NAME_NOTE));
+						boolean isEmpty = noteText == null
+								|| noteText.isEmpty();
+
+						// Set height to zero if it's empty, otherwise wrap
+						if (isEmpty)
+							layoutParams = new LinearLayout.LayoutParams(
+									LinearLayout.LayoutParams.MATCH_PARENT, 0);
+						else
+							layoutParams = new LinearLayout.LayoutParams(
+									LinearLayout.LayoutParams.MATCH_PARENT,
+									LinearLayout.LayoutParams.WRAP_CONTENT);
+
+						tv.setLayoutParams(layoutParams);
+					}
+
 					// Set strike through on completed tasks
 					String text = cursor.getString(cursor
 							.getColumnIndex(NotePad.Notes.COLUMN_NAME_GTASKS_STATUS));
@@ -744,6 +764,24 @@ public class NotesListFragment extends NoNonsenseListFragment implements
 					}
 
 					// Return false so the normal call is used to set the text
+					return false;
+				} else if (columnIndex == cursor
+						.getColumnIndex(NotePad.Notes.COLUMN_NAME_DUE_DATE)) {
+					String text = cursor.getString(cursor
+							.getColumnIndex(NotePad.Notes.COLUMN_NAME_DUE_DATE));
+					TextView tv = (TextView) view;
+					LinearLayout.LayoutParams layoutParams;
+					if (text == null || text.isEmpty()) {
+						// Set height to zero
+						layoutParams = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.WRAP_CONTENT, 0);
+					} else {
+						// Set height to wrap
+						layoutParams = new LinearLayout.LayoutParams(
+								LinearLayout.LayoutParams.WRAP_CONTENT,
+								LinearLayout.LayoutParams.WRAP_CONTENT);
+					}
+					tv.setLayoutParams(layoutParams);
 					return false;
 				} else if (columnIndex == cursor
 						.getColumnIndex(NotePad.Notes.COLUMN_NAME_INDENTLEVEL)) {
